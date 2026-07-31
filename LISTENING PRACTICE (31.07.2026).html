@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listening Exercises</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #transcript p { padding: 8px 12px; margin-bottom: 4px; border-radius: 6px; transition: all 0.3s; color: #64748b; cursor: pointer; border-left: 3px solid transparent; }
+        #transcript p:hover { background: #f8fafc; }
+        #transcript p.active { background: #eff6ff; color: #1e40af; font-weight: 500; border-left-color: #3b82f6; }
+        @keyframes sparkleAnim { 0% { transform: scale(1); text-shadow: none; color: inherit; } 50% { transform: scale(1.5); text-shadow: 0 0 10px #fbbf24; color: #d97706; } 100% { transform: scale(1); } }
+        .keyword-sparkle { transition: all 0.3s; border-bottom: 2px solid transparent; display: inline-block; }
+        .keyword-sparkle.trigger { animation: sparkleAnim 1.5s ease-in-out; font-weight: bold; border-bottom-color: #f59e0b; }
+        .text-highlight { background-color: #fef08a; color: #854d0e; padding: 0 2px; border-radius: 2px; font-weight: bold; transition: all 0.3s; }
+        #transcript p.active .text-highlight { background-color: #facc15; }
+        
+        input[type="text"] { transition: all 0.3s; border-bottom: 2px solid #cbd5e1; padding: 2px 8px; text-align: center; color: #2563eb; font-weight: 600; background: #f8fafc; border-radius: 4px 4px 0 0; min-width: 60px; }
+        input[type="text"]:focus { outline: none; border-bottom-color: #3b82f6; background: #eff6ff; }
+        
+        /* Hiệu ứng Alert và Sparkle */
+        input[type="text"].highlight-input { background-color: #fef9c3; border-bottom-color: #eab308; transform: scale(1.05); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .question-block { transition: all 0.3s; }
+        .question-block.highlight-block { border-left: 4px solid #ef4444; background: #fef2f2; padding-left: 12px; }
+
+        /* Table Styles */
+        .generated-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9em; }
+        .generated-table td, .generated-table th { border: 1px solid #e2e8f0; padding: 8px; vertical-align: middle; }
+        .generated-table tr:nth-child(even) { background-color: #f8fafc; }
+        .generated-table tr:hover { background-color: #f1f5f9; }
+        .generated-table td input { width: 90%; min-width: 40px; }
+
+        .draggable-item { cursor: grab; background: white; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 4px; display: inline-block; margin: 4px; font-size: 0.9em; box-shadow: 0 1px 2px rgba(0,0,0,0.05); user-select: none; transition: all 0.2s; max-width: 100%; word-break: break-word; white-space: normal; line-height: 1.4; text-align: left; }
+        .draggable-item:active { cursor: grabbing; border-color: #3b82f6; }
+        .draggable-item.used { opacity: 0.4; background: #e2e8f0; text-decoration: line-through; pointer-events: none; border-color: #cbd5e1; box-shadow: none; }
+        
+        .drop-zone { display: inline-flex; align-items: center; justify-content: flex-start; min-width: 80px; min-height: 32px; border: 2px dashed #cbd5e1; border-radius: 4px; background: #f8fafc; vertical-align: middle; margin: 0; text-align: left; line-height: 1.4; position: relative; transition: all 0.2s; max-width: 100%; padding: 4px 8px; box-sizing: border-box; overflow: hidden; }
+        .drop-zone.drag-over { background: #eff6ff; border-color: #3b82f6; transform: scale(1.02); }
+        .drop-zone.cursor-pointer:hover { border-color: #94a3b8; background: #f1f5f9; }
+        .drop-zone .dropped-item { background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 2px; display: block; width: 100%; font-weight: bold; pointer-events: none; word-break: break-word; white-space: normal; text-align: left; font-size: 0.9em; margin: 0; }
+        
+		/* Grading Styles */
+        .correct-answer { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .incorrect-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        .correct-text { color: #15803d; font-weight: bold; }
+        .correct-feedback { display: block; margin-top: 4px; color: #16a34a; font-weight: bold; font-size: 0.875rem; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .resizer-bar { width: 8px; background-color: #cbd5e1; cursor: col-resize; flex-shrink: 0; z-index: 30; display: flex; justify-content: center; align-items: center; border-left: 1px solid #94a3b8; }
+        .resizer-bar::after { content: "||"; color: #475569; font-size: 10px; }
+		
+		/* --- GIAO DIỆN DASHBOARD CARD --- */
+        #dashboard-view { position: fixed; inset: 0; background: #f4f7f6; z-index: 1000; overflow-y: auto; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
+        .dash-title { font-size: 24px; font-weight: 800; color: #0f766e; margin-bottom: 30px; text-transform: uppercase; }
+        .card-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; max-width: 1200px; width: 100%; }
+        .test-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; width: 340px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; display: flex; flex-direction: column; }
+        .test-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .card-header { display: flex; align-items: flex-start; gap: 10px; color: #115e59; font-weight: 700; font-size: 16px; margin-bottom: 12px; text-transform: uppercase; line-height: 1.4; }
+        .q-types-box { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 6px; flex: 1; align-content: flex-start; }
+        .q-tag { background: #fff; border: 1px solid #e2e8f0; color: #475569; font-size: 11px; padding: 4px 8px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 4px; font-weight: 600; }
+        .q-tag-count { background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 700; }
+        .card-stats { background: #fff1f2; border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .stat-item { display: flex; align-items: center; gap: 6px; color: #9a3412; font-size: 13px; font-weight: 600; }
+        .btn-enter { background: #e0f2fe; color: #0369a1; padding: 10px 0; width: 100%; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid #bae6fd; transition: 0.2s; text-align: center; }
+        .btn-enter:hover { background: #bae6fd; }
+        
+        /* Ẩn giao diện chính khi ở sảnh chờ */
+        body.in-dashboard > header, body.in-dashboard > main { display: none !important; }
+        
+        /* Nút quay lại */
+        .back-btn { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px; transition: 0.2s; margin-right: 16px; }
+        .back-btn:hover { background: #e2e8f0; color: #1e293b; }
+		
+		/* User Highlight & Note Styles */
+        .user-hl { cursor: pointer; border-radius: 2px; transition: opacity 0.2s; }
+        .user-hl:hover { opacity: 0.7; }
+        .user-note { 
+            border-bottom: 2px dashed #f59e0b; 
+            background-color: rgba(245, 158, 11, 0.1); 
+            cursor: pointer; 
+            position: relative; 
+            transition: all 0.2s;
+        }
+        .user-note:hover { background-color: rgba(245, 158, 11, 0.3); }
+        .user-note::after {
+            content: '\f249'; /* FontAwesome sticky-note icon */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 10px;
+            color: #d97706;
+            vertical-align: super;
+            margin-left: 2px;
+        }
+        #floating-note-btn { 
+            position: absolute; z-index: 1000; 
+            background: #1e293b; color: white; 
+            padding: 5px 12px; border-radius: 6px; 
+            font-size: 13px; font-weight: bold; 
+            cursor: pointer; display: none; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); 
+        }
+        #floating-note-btn:hover { background: #3b82f6; }
+		
+/* Style số câu hỏi giống hệt gap-fill */
+        .q-badge {
+            background-color: #dbeafe; /* bg-blue-100 */
+            color: #1d4ed8; /* text-blue-700 */
+            padding: 2px 6px; /* px-1.5 py-0.5 */
+            border-radius: 4px; /* rounded */
+            font-size: 11px; /* text-[11px] */
+            font-weight: 700; /* font-bold */
+            border: 1px solid #bfdbfe; /* border-blue-200 */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        /* MCQ Option: Chữ cái nằm trong nút tròn */
+        .mcq-option {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fff;
+        }
+        .mcq-option:hover { background-color: #f8fafc; border-color: #cbd5e1; }
+        .mcq-option input { display: none; } /* Ẩn nút radio/checkbox gốc */
+
+        .opt-letter {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 2px solid #cbd5e1;
+            background-color: #f8fafc;
+            color: #64748b;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 10px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        /* Khi được chọn */
+        .mcq-option input:checked + .opt-letter {
+            background-color: #2563eb;
+            border-color: #2563eb;
+            color: white;
+        }
+        .mcq-option:has(input:checked) {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+        }
+		
+		/* CSS cho Map Grid */
+        .map-grid-table { width: 100%; border-collapse: collapse; margin: 16px 0; table-layout: auto; }
+        .map-grid-table th, .map-grid-table td { border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: middle; }
+        .map-radio { width: 18px; height: 18px; cursor: pointer; accent-color: #2563eb; }
+        td.correct-text { background-color: #dcfce7 !important; border-color: #22c55e !important; }
+        td.incorrect-answer { background-color: #fee2e2 !important; border-color: #ef4444 !important; }
+		
+		/* Question Palette trên Header */
+		#question-palette::-webkit-scrollbar { display: none; }
+		.palette-btn { width: 28px; height: 28px; flex-shrink: 0; border-radius: 6px; border: 1px solid #cbd5e1; background: white; color: #475569; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+		.palette-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+		.palette-btn.answered { background: #bae6fd; border-color: #38bdf8; color: #0284c7; }
+		.palette-btn.correct { background: #22c55e !important; border-color: #16a34a !important; color: white !important; }
+		.palette-btn.incorrect { background: #ef4444 !important; border-color: #dc2626 !important; color: white !important; }
+		@keyframes blinkEffect { 0%, 100% { background-color: transparent; outline: none; } 50% { background-color: #fef08a; outline: 2px solid #eab308; } }
+		.blink-effect { animation: blinkEffect 0.6s ease-in-out 3; border-radius: 4px; }
+		
+		/* Nút Play Audio Tại Chỗ */
+        .play-here-btn {
+            width: 22px; height: 22px; border-radius: 50%; display: inline-flex;
+            align-items: center; justify-content: center; cursor: pointer;
+            background: #dbeafe; color: #2563eb; border: 1px solid #bfdbfe;
+            transition: all 0.2s; vertical-align: middle; margin-left: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .play-here-btn:hover { background: #bfdbfe; transform: scale(1.1); }
+		
+		/* Hiệu ứng bật lên của Dấu Tick Hoàn Thành */
+        .done-tick {
+            color: #22c55e;
+            margin-left: 6px;
+            font-size: 14px;
+            vertical-align: middle;
+            display: inline-flex;
+            animation: popInTick 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popInTick { 
+            0% { transform: scale(0); opacity: 0; } 
+            100% { transform: scale(1); opacity: 1; } 
+        }
+		
+		/* CSS CHO BẢNG LỌC (FILTER PANEL) */
+        .filter-panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; width: 340px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 24px; flex-shrink: 0; }
+        .filter-header { color: #0f766e; font-size: 16px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+        .filter-option { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; color: #475569; font-size: 14px; font-weight: 500; }
+        .filter-option input[type="radio"] { width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer; }
+        .random-btn { width: 100%; background: #3b82f6; color: white; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; margin-top: 10px; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; border: none; }
+        .random-btn:hover { background: #2563eb; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); transform: translateY(-1px); }
+        .select-lesson-box { margin-top: 15px; width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; color: #475569; font-size: 13px; font-weight: 600; outline: none; background: #f8fafc; cursor: pointer; }
+		
+		/* --- GIAO DIỆN REPORT --- */
+        #report-view { position: fixed; inset: 0; background: #f4f7f6; z-index: 1000; overflow-y: auto; padding: 40px 20px; display: none; flex-direction: column; align-items: center; font-family: 'Segoe UI', sans-serif;}
+        .report-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; width: 100%; max-width: 900px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; }
+        .report-title { font-size: 20px; font-weight: 800; color: #1e293b; }
+        .report-close { background: #f1f5f9; color: #475569; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; border: 1px solid #cbd5e1; }
+        .report-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 30px; }
+        .report-stat-box { background: #fffbf5; padding: 16px; border-radius: 8px; border: 1px solid #faebd7; }
+        .report-stat-title { font-size: 13px; color: #64748b; margin-bottom: 8px; }
+        .report-stat-value { font-size: 24px; font-weight: 800; color: #1e293b; }
+        .progress-row { display: flex; align-items: center; margin-bottom: 16px; }
+        .progress-label { width: 150px; font-size: 13px; color: #475569; font-weight: 600; text-align: right; margin-right: 16px; }
+        .progress-bar-bg { flex: 1; background: #f1f5f9; height: 32px; position: relative; display: flex; align-items: center; }
+        .progress-bar-fill { height: 100%; background: #c2410c; transition: width 0.5s ease; }
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        .history-table th { text-align: left; padding: 12px 8px; border-bottom: 2px solid #e2e8f0; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 11px;}
+        .history-table td { padding: 12px 8px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+        .btn-detail { color: #c2410c; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .btn-detail:hover { text-decoration: underline; }
+		
+		/* Hiệu ứng Chuông báo chú ý */
+        .attention-bell {
+            color: #ef4444;
+            font-size: 12px;
+            font-weight: bold;
+            animation: shakeBell 0.4s ease-in-out infinite;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 8px;
+            background: #fef2f2;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #fca5a5;
+            vertical-align: middle;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+            z-index: 10;
+        }
+        @keyframes shakeBell {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            75% { transform: rotate(-15deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col text-gray-800 overflow-hidden">
+
+<div id="login-modal" style="position:fixed; inset:0; background:#f4f7f6; z-index:999999; display:flex; align-items:center; justify-content:center; font-family:'Segoe UI', sans-serif;">
+    <div style="background:#fff; padding:40px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.1); width:320px; text-align:center;">
+        <h2 style="color:#0f766e; margin-bottom:20px; text-transform:uppercase; font-weight:800;">Đăng nhập làm bài</h2>
+        <input type="text" id="hs-id" placeholder="Nhập ID học sinh..." style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; outline:none;">
+        <input type="password" id="hs-pass" placeholder="Nhập mật khẩu..." style="width:100%; padding:10px; margin-bottom:20px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; outline:none;">
+        <button onclick="handleLogin()" id="btnLogin" style="width:100%; padding:12px; background:#0ea5e9; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer; transition:0.2s;">ĐĂNG NHẬP</button>
+        <div id="login-msg" style="color:#ef4444; margin-top:15px; font-size:13px; font-weight:bold;"></div>
+    </div>
+</div>
+
+	<div id="dashboard-view">
+        <div class="dash-title">DANH SÁCH BÀI NGHE</div>
+        
+        <div class="filter-panel">
+            <div class="filter-header"><i class="fa-regular fa-circle-dot text-red-500"></i> LỌC DẠNG BÀI</div>
+            
+            <label class="filter-option"><input type="radio" name="lesson_filter" value="ALL" checked> Nghe Nguyên Bài (Full Test)</label>
+            <label class="filter-option"><input type="radio" name="lesson_filter" value="PART1"> Part 1 (Câu 1 - 10)</label>
+            <label class="filter-option"><input type="radio" name="lesson_filter" value="PART2"> Part 2 (Câu 11 - 20)</label>
+            <label class="filter-option"><input type="radio" name="lesson_filter" value="PART3"> Part 3 (Câu 21 - 30)</label>
+            <label class="filter-option"><input type="radio" name="lesson_filter" value="PART4"> Part 4 (Câu 31 - 40)</label>
+            
+            <button class="random-btn" onclick="startRandomTest()"><i class="fa-solid fa-shuffle"></i> NGẪU NHIÊN 1 BÀI</button>
+            
+            <select id="specific-lesson-select" class="select-lesson-box" onchange="if(this.value !== '') startTest(this.value)">
+                <option value="">🗂️ Chọn bài nghe cụ thể...</option>
+            </select>
+        </div>
+
+        <div class="card-container" id="card-render-area"></div>
+    </div>
+	
+	<div id="report-view">
+        <div class="report-card">
+            <div class="report-header">
+                <div class="report-title">Báo cáo kết quả học tập</div>
+                <button class="report-close" onclick="closeReport()">Đóng lại</button>
+            </div>
+            
+            <div class="report-grid">
+                <div class="report-stat-box">
+                    <div class="report-stat-title">Số bài đã làm</div>
+                    <div class="report-stat-value" id="rp-total-lessons">0</div>
+                </div>
+                <div class="report-stat-box">
+                    <div class="report-stat-title">Số câu đúng / Tổng câu</div>
+                    <div class="report-stat-value" id="rp-correct">0/0</div>
+                </div>
+                <div class="report-stat-box">
+                    <div class="report-stat-title">Band điểm ước lượng</div>
+                    <div class="report-stat-value text-orange-600" id="rp-band">0.0</div>
+                </div>
+            </div>
+
+            <h3 class="font-bold text-gray-800 text-sm mb-4 mt-6 border-b pb-2">Độ chính xác theo từng parts</h3>
+            <div id="rp-accuracy-bars"></div>
+            
+            <div class="flex text-xs text-gray-500 mb-6 justify-between px-4">
+                <span>0%</span><span>20%</span><span>40%</span><span>60%</span><span>80%</span><span>100%</span>
+            </div>
+
+            <h3 class="font-bold text-gray-800 text-sm mb-4 mt-8 border-b pb-2">Lịch sử làm bài (<span id="rp-history-count">0</span>)</h3>
+            <div class="overflow-x-auto">
+                <table class="history-table">
+                    <thead><tr><th>Bài</th><th>Dạng</th><th>Điểm</th><th>Thời gian</th><th>Thời điểm</th><th></th></tr></thead>
+                    <tbody id="rp-history-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+	
+    <header class="bg-white shadow-sm p-2 md:p-3 flex justify-between items-center z-10 h-auto min-h-[64px] shrink-0 border-b border-gray-200 gap-3">
+        <div class="flex items-center gap-2 md:gap-4 shrink-0">
+            <button class="back-btn !m-0" onclick="goBackToDashboard()"><i class="fa-solid fa-arrow-left"></i> <span class="hidden lg:inline ml-1">Quay lại</span></button>
+			<button id="btn-back-report" class="back-btn !m-0 hidden !bg-orange-50 !border-orange-200 !text-orange-700 hover:!bg-orange-100" onclick="backToReport()"><i class="fa-solid fa-arrow-left"></i> <span class="hidden lg:inline ml-1">Trở về Report</span></button>
+            <h1 class="text-base md:text-lg font-bold text-slate-700 flex items-center gap-1 md:gap-2">
+                <i class="fa-solid fa-headphones text-blue-600"></i> <span class="hidden md:inline">Listening</span>
+                <span id="top-total-qs" class="text-[11px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded border border-blue-200 ml-1">0 câu</span>
+            </h1>
+            <div class="hidden">
+                <select id="lesson-selector" onchange="switchLesson(this.value)"></select>
+            </div>
+        </div>
+
+        <div id="question-palette" class="flex-1 flex items-center gap-1.5 overflow-x-auto px-2" style="scrollbar-width: none;">
+            </div>
+
+        <div class="flex gap-2 md:gap-3 items-center shrink-0">
+            <!-- Công tắc bật chuông báo -->
+            <label class="flex items-center gap-1 border-r border-gray-300 pr-2 md:pr-3 mr-1 text-xs md:text-sm font-bold text-red-500 hover:text-red-600 cursor-pointer transition" title="Bật chuông báo hiệu chú ý khi đến câu hỏi">
+                <input type="checkbox" id="bell-toggle" class="accent-red-500 w-4 h-4 cursor-pointer">
+                <i class="fa-solid fa-bell"></i> <span class="hidden xl:inline">Báo Chú Ý</span>
+            </label>
+			
+			<div class="flex items-center gap-1 border-r border-gray-300 pr-2 md:pr-3 mr-1">
+                <input type="color" id="hl-color" value="#fef08a" class="w-6 h-6 md:w-7 md:h-7 p-0 border-0 rounded cursor-pointer shrink-0" title="Chọn màu Highlight">
+                <button id="hl-toggle" onclick="toggleHighlightMode()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 md:px-3 md:py-1 rounded text-xs md:text-sm font-bold shadow-sm transition border border-gray-300 flex items-center gap-1">
+                    <i class="fa-solid fa-highlighter"></i> <span class="hidden xl:inline">Bật Highlight</span>
+                </button>
+            </div>
+            
+            <div class="bg-slate-100 px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-mono text-slate-600 border border-slate-200" id="timer">00:00</div>
+            <button onclick="checkResults()" class="bg-green-600 hover:bg-green-700 text-white text-xs md:text-sm font-bold px-3 py-1.5 md:px-4 md:py-1.5 rounded shadow whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Nộp Bài</button>
+        </div>
+    </header>
+    
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden" id="main-container">
+        <div id="pane-transcript" class="w-full md:w-[40%] flex flex-col border-r border-gray-200 bg-white relative z-10 min-w-[250px]">
+            <div class="p-4 bg-slate-900 text-white shadow-md shrink-0">
+                <audio id="audio" class="w-full h-10 mb-2" controls></audio>
+                <div class="flex items-center justify-between" id="trans-btn-container"></div>
+            </div>
+            <div id="transcript-container" class="flex-1 overflow-y-auto p-4 md:p-6 bg-white scroll-smooth">
+                <div id="transcript" class="text-base md:text-lg leading-relaxed max-w-2xl mx-auto"></div>
+            </div>
+            <div id="transcript-placeholder" class="hidden flex-1 flex items-center justify-center bg-slate-50 text-slate-400 p-10 text-center italic">
+                <div><i class="fa-solid fa-eye-slash text-3xl mb-3"></i><br>Transcript is currently hidden.</div>
+            </div>
+        </div>
+        
+        <div id="resizer-1" class="resizer-bar hidden md:flex"></div>
+
+        <div id="pane-right" class="flex-1 flex flex-col md:flex-row overflow-hidden relative bg-slate-50">
+            <div id="pane-questions" class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth min-w-[300px]">
+                <div class="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100 min-h-full">
+			
+			
+			<div id="questions-content"></div>
+			<div id="result-message" class="hidden mt-6 p-4 rounded bg-blue-50 text-blue-800 text-center font-bold border border-blue-200"></div>
+			
+			<div id="bottom-actions" class="hidden mt-6 flex flex-wrap justify-between items-center gap-4 border-t pt-6">
+				<button onclick="saveCurrentResult()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-bold shadow transition text-sm">
+					<i class="fa-solid fa-floppy-disk mr-1"></i> Save Result
+				</button>
+				<button id="btn-next-lesson" onclick="goToNextLesson()" class="bg-sky-500 hover:bg-sky-600 text-white px-5 py-2 rounded-lg font-bold shadow transition text-sm ml-auto hidden">
+				</button>
+				<button onclick="openReport()" class="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2 rounded-lg font-bold shadow transition text-sm ml-2">
+					<i class="fa-solid fa-chart-pie mr-1"></i> Xem Report
+				</button>
+    </div>
+</div>
+            </div>
+        </div>
+    </main>
+<div id="floating-note-btn" onclick="createNote()"><i class="fa-solid fa-pen-to-square mr-1"></i> Note</div>
+    <script>
+	
+	// --- THIẾT LẬP API GOOGLE SHEETS ---
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyFR8zb-c2Ju3UUEwwyAw4ZD6WIrtBQnZOegdCMlgYVyccGNBEXAdhEfyhD4m4ZGZGEMg/exec";
+let currentStudent = { id: "", name: "" };
+
+async function handleLogin() {
+    const id = document.getElementById('hs-id').value.trim();
+    const pass = document.getElementById('hs-pass').value.trim();
+    const btn = document.getElementById('btnLogin');
+    const msg = document.getElementById('login-msg');
+    
+    if(!id || !pass) return msg.innerText = "Vui lòng nhập đủ ID và Mật khẩu!";
+    
+    btn.innerText = "ĐANG KIỂM TRA...";
+    btn.disabled = true;
+    
+    try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'login');
+        formData.append('id', id);
+        formData.append('password', pass);
+
+        const res = await fetch(GAS_URL, { method: 'POST', body: formData, redirect: 'follow' });
+        const data = await res.json();
+        
+        if(data.status === 'success') {
+            currentStudent.id = id;
+            currentStudent.name = data.name;
+            document.getElementById('login-modal').style.display = 'none';
+            alert(`Chào mừng ${data.name}! Bắt đầu làm bài.`);
+        } else {
+            msg.innerText = data.message;
+        }
+    } catch(e) {
+        msg.innerText = "Lỗi kết nối mạng!";
+    }
+    btn.innerText = "ĐĂNG NHẬP";
+    btn.disabled = false;
+}
+
+async function sendReportToSheet(score, total, timeSpent, testNameOverride) {
+    let realTestName = testNameOverride || document.title;
+    
+    if (!testNameOverride) {
+        if (typeof currentLessonIndex !== 'undefined' && lessonsData[currentLessonIndex]) {
+            realTestName = lessonsData[currentLessonIndex].name;
+        }
+    }
+
+    const submitBtn = document.querySelector('button[onclick="checkResults()"]');
+    if(submitBtn) { submitBtn.innerText = "ĐANG GỬI..."; submitBtn.disabled = true; }
+
+    const formData = new URLSearchParams();
+    formData.append('action', 'submitReport');
+    formData.append('id', currentStudent.id);
+    formData.append('name', currentStudent.name);
+    formData.append('testName', realTestName);
+    formData.append('score', score + "/" + total);
+    formData.append('time', timeSpent + " giây");
+    formData.append('details', "Đã hoàn thành");
+    formData.append('note', 'Listening'); // <--- GHI CHÚ LISTENING 
+
+    try {
+        await fetch(GAS_URL, { method: 'POST', body: formData, redirect: 'follow' });
+    } catch(e) {
+        console.error("Lỗi khi gửi kết quả!", e);
+    }
+    
+    if(submitBtn) { submitBtn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Đã Nộp'; }
+}
+// ------------------------------------
+	
+	window.playAudioFrom = function(time) {
+            const audio = document.getElementById('audio');
+            if (audio) {
+                audio.currentTime = time;
+                audio.play();
+            }
+        };
+	
+	// --- HIGHLIGHT & NOTE LOGIC ---
+        let isHlMode = false;
+
+        function toggleHighlightMode() {
+            isHlMode = !isHlMode;
+            const btn = document.getElementById('hl-toggle');
+            if (isHlMode) {
+                btn.classList.replace('bg-gray-100', 'bg-yellow-300');
+                btn.classList.replace('hover:bg-gray-200', 'hover:bg-yellow-400');
+                btn.classList.replace('text-gray-700', 'text-yellow-900');
+                btn.innerHTML = '<i class="fa-solid fa-highlighter"></i> Đang HL...';
+            } else {
+                btn.classList.replace('bg-yellow-300', 'bg-gray-100');
+                btn.classList.replace('hover:bg-yellow-400', 'hover:bg-gray-200');
+                btn.classList.replace('text-yellow-900', 'text-gray-700');
+                btn.innerHTML = '<i class="fa-solid fa-highlighter"></i> Bật Highlight';
+            }
+        }
+
+        document.addEventListener('mouseup', function(e) {
+            // Bỏ qua nếu click vào nút float
+            if(e.target.id === 'floating-note-btn') return;
+
+            const selection = window.getSelection();
+            const text = selection.toString().trim();
+            const floatBtn = document.getElementById('floating-note-btn');
+
+            // Chỉ kích hoạt khi bôi đen nội dung trong vùng làm bài
+            if (text.length > 0 && e.target.closest('#main-container')) {
+                if (isHlMode) {
+                    applyHighlight(selection);
+                    floatBtn.style.display = 'none';
+                } else {
+                    // Nếu đang tắt Highlight -> Hiện nút Note
+                    const range = selection.getRangeAt(0);
+                    const rect = range.getBoundingClientRect();
+                    floatBtn.style.display = 'block';
+                    floatBtn.style.top = (rect.top + window.scrollY - 35) + 'px';
+                    floatBtn.style.left = (rect.left + window.scrollX + (rect.width/2) - 30) + 'px';
+                    window.currentNoteRange = range.cloneRange();
+                }
+            } else {
+                floatBtn.style.display = 'none';
+            }
+        });
+
+        function applyHighlight(selection) {
+            const color = document.getElementById('hl-color').value;
+            const range = selection.getRangeAt(0);
+            const span = document.createElement('span');
+            span.className = 'user-hl';
+            span.style.backgroundColor = color;
+            span.title = "Click để xóa highlight";
+            
+            try {
+                range.surroundContents(span);
+            } catch(e) {
+                alert("Vui lòng bôi đen từng đoạn ngắn, không bôi đen chéo qua các ô trống hoặc nhiều dòng cùng lúc.");
+            }
+            selection.removeAllRanges();
+        }
+
+        function createNote() {
+            document.getElementById('floating-note-btn').style.display = 'none';
+            const noteText = prompt("Nhập nội dung ghi chú cho cụm từ này:");
+            
+            if (noteText && window.currentNoteRange) {
+                const span = document.createElement('span');
+                span.className = 'user-note';
+                span.dataset.note = noteText;
+                span.title = noteText;
+                try {
+                    window.currentNoteRange.surroundContents(span);
+                } catch(e) {
+                    alert("Vui lòng bôi đen đoạn văn bản liên tục, không chứa ô trống điền từ.");
+                }
+            }
+            window.getSelection().removeAllRanges();
+        }
+
+        // Ủy quyền sự kiện click để Xóa Highlight hoặc Sửa Note
+        document.addEventListener('click', function(e) {
+            // Xóa Highlight
+            if (e.target.classList.contains('user-hl')) {
+                const parent = e.target.parentNode;
+                while (e.target.firstChild) {
+                    parent.insertBefore(e.target.firstChild, e.target);
+                }
+                parent.removeChild(e.target);
+            }
+
+            // Mở và Sửa Note
+            if (e.target.classList.contains('user-note')) {
+                const currentNote = e.target.dataset.note;
+                const newNote = prompt("Chỉnh sửa ghi chú (Xóa trắng để gỡ bỏ ghi chú):", currentNote);
+                
+                if (newNote === null) return; // Nhấn Cancel
+                
+                if (newNote.trim() === "") {
+                    // Xóa hoàn toàn note
+                    const parent = e.target.parentNode;
+                    while (e.target.firstChild) {
+                        parent.insertBefore(e.target.firstChild, e.target);
+                    }
+                    parent.removeChild(e.target);
+                } else {
+                    // Cập nhật nội dung mới
+                    e.target.dataset.note = newNote;
+                    e.target.title = newNote;
+                }
+            }
+        });
+        const lessonsData = [{"name":"EXERCISE 2","audio":"https://englishpracticetest.net/wp-content/uploads/2022/11/a2-test-3-02.mp3","image":"","hideTrans":false,"removeDragged":true,"imgLeft":false,"answerKey":{"drop-auto-0":"F","drop-auto-1":"C","drop-auto-2":"D","drop-auto-3":"B","drop-auto-4":"G"},"itemImages":{},"processedTranscript":"\u003cp data-time=\"4.969\">Hello Julie, your new flat is really nice.\u003c/p>\n\u003cp data-time=\"9.021\">Thanks Jim, it\\'s nice to see all my friends here.\u003c/p>\n\u003cp data-time=\"13.030\">Yes, the living room is certainly full of people.\u003c/p>\n\u003cp data-time=\"17.181\">Er, Kevin wants to know if you have any orange juice.\u003c/p>\n\u003cp data-time=\"21.490\">Yes I have.\u003c/p>\n\u003cp data-time=\"23.330\">Everybody\\'s hungry or thirsty aren\\'t they?\u003c/p>\n\u003cp data-time=\"26.321\">Of course, it\\'s a party.\u003c/p>\n\u003cp data-time=\"29.641\">Would you like me to help you?\u003c/p>\n\u003cp data-time=\"31.401\">Oh yes please.\u003c/p>\n\u003cp data-time=\"33.601\">Could you make a sandwich for Barbara?\u003c/p>\n\u003cp data-time=\"36.121\">What does she want in it?\u003c/p>\n\u003cp data-time=\"37.881\">She asked for cheese and Paul wants an ice cream.\u003c/p>\n\u003cp data-time=\"42.689\">Fine.\u003c/p>\n\u003cp data-time=\"44.001\">I\\'ll make the sandwich and get the ice cream for him.\u003c/p>\n\u003cp data-time=\"48.041\">What does Diana want?\u003c/p>\n\u003cp data-time=\"49.801\">She isn\\'t hungry.\u003c/p>\n\u003cp data-time=\"51.521\">She just wants a glass of milk.\u003c/p>\n\u003cp data-time=\"53.921\">What about the other guests?\u003c/p>\n\u003cp data-time=\"56.201\">Do they want anything?\u003c/p>\n\u003cp data-time=\"57.841\">I don\\'t think so.\u003c/p>\n\u003cp data-time=\"60.149\">Oh, what about you Jim?\u003c/p>\n\u003cp data-time=\"62.681\">What do you want?\u003c/p>\n\u003cp data-time=\"63.854\">I\\'ll just get a bottle of Coke from the fridge.\u003c/p>\n\u003cp data-time=\"67.259\">Do you want some Julie?\u003c/p>\n\u003cp data-time=\"68.881\">No thanks.\u003c/p>\n\u003cp data-time=\"70.481\">After all this work, I need a cup of tea.\u003c/p>\n\u003cp data-time=\"79.139\">Now listen again.\u003c/p>\n\u003cp data-time=\"82.189\">Hello Julie, your new flat is really nice.\u003c/p>\n\u003cp data-time=\"86.641\">Thanks Jim.\u003c/p>\n\u003cp data-time=\"87.764\">It\\'s nice to see all my friends here.\u003c/p>\n\u003cp data-time=\"90.401\">Yes.\u003c/p>\n\u003cp data-time=\"91.561\">The living room is certainly full of people.\u003c/p>\n\u003cp data-time=\"94.481\">Er, Kevin wants to know if you have any orange juice.\u003c/p>\n\u003cp data-time=\"98.761\">Yes I have.\u003c/p>\n\u003cp data-time=\"100.961\">Everybody\\'s hungry or thirsty aren\\'t they?\u003c/p>\n\u003cp data-time=\"103.739\">Of course, it\\'s a party.\u003c/p>\n\u003cp data-time=\"106.921\">Would you like me to help you?\u003c/p>\n\u003cp data-time=\"108.561\">Oh yes please.\u003c/p>\n\u003cp data-time=\"110.921\">Could you make a sandwich for Barbara?\u003c/p>\n\u003cp data-time=\"113.561\">What does she want in it?\u003c/p>\n\u003cp data-time=\"115.241\">She asked for cheese and Paul wants an ice cream.\u003c/p>\n\u003cp data-time=\"119.681\">Fine.\u003c/p>\n\u003cp data-time=\"121.129\">I\\'ll make the sandwich and get the ice cream for him.\u003c/p>\n\u003cp data-time=\"125.441\">What does Diana want?\u003c/p>\n\u003cp data-time=\"127.081\">She isn\\'t hungry.\u003c/p>\n\u003cp data-time=\"128.841\">She just wants a glass of milk.\u003c/p>\n\u003cp data-time=\"131.401\">What about the other guests?\u003c/p>\n\u003cp data-time=\"133.441\">Do they want anything?\u003c/p>\n\u003cp data-time=\"135.001\">I don\\'t think so.\u003c/p>\n\u003cp data-time=\"137.370\">Oh, what about you Jim?\u003c/p>\n\u003cp data-time=\"139.921\">What do you want?\u003c/p>\n\u003cp data-time=\"141.070\">I\\'ll just get a bottle of Coke from the fridge.\u003c/p>\n\u003cp data-time=\"144.601\">You want some, Julie?\u003c/p>\n\u003cp data-time=\"145.961\">No thanks.\u003c/p>\n\u003cp data-time=\"147.681\">After all this work, I need a cup of tea.\u003c/p>\n","processedQuestions":"\u003cdiv class=\"vocab-block mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200 select-none\">\n                    \u003cdiv class=\"flex justify-between items-center mb-3\">\n                        \u003ch3 class=\"font-bold text-indigo-800 text-sm uppercase\">\u003ci class=\"fa-solid fa-link mr-2\">\u003c/i>Vocabulary Matching\u003c/h3>\n                        \u003cbutton onclick=\"checkVocabMatching(this)\" class=\"bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1 rounded shadow transition\">\u003ci class=\"fa-solid fa-check mr-1\">\u003c/i> Check Vocab\u003c/button>\n                    \u003c/div>\n                    \u003cdiv class=\"flex flex-col md:flex-row gap-4 w-full\">\n                        \u003cdiv class=\"flex-1 min-w-0\">\u003cdiv class=\"flex justify-between items-center bg-white p-2 mb-2 rounded border border-gray-200 shadow-sm gap-2 w-full min-w-0\">\n                        \u003cspan class=\"font-bold text-gray-700 text-sm shrink-0 max-w-[50%] break-words\">sandwich\u003c/span>\n                        \u003cdiv id=\"drop-vocab-global-5kvzmq\" data-answer=\"make a sandwich\" class=\"drop-zone vocab-drop-zone cursor-pointer flex-1 min-w-[100px] !h-auto !min-h-[32px] !leading-snug\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\">\u003c/div>\n                    \u003c/div>\u003cdiv class=\"flex justify-between items-center bg-white p-2 mb-2 rounded border border-gray-200 shadow-sm gap-2 w-full min-w-0\">\n                        \u003cspan class=\"font-bold text-gray-700 text-sm shrink-0 max-w-[50%] break-words\">ice-cream\u003c/span>\n                        \u003cdiv id=\"drop-vocab-global-y0t7hs\" data-answer=\"wants an ice cream\" class=\"drop-zone vocab-drop-zone cursor-pointer flex-1 min-w-[100px] !h-auto !min-h-[32px] !leading-snug\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\">\u003c/div>\n                    \u003c/div>\u003cdiv class=\"flex justify-between items-center bg-white p-2 mb-2 rounded border border-gray-200 shadow-sm gap-2 w-full min-w-0\">\n                        \u003cspan class=\"font-bold text-gray-700 text-sm shrink-0 max-w-[50%] break-words\">milk\u003c/span>\n                        \u003cdiv id=\"drop-vocab-global-6dybpv\" data-answer=\"glass of milk\" class=\"drop-zone vocab-drop-zone cursor-pointer flex-1 min-w-[100px] !h-auto !min-h-[32px] !leading-snug\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\">\u003c/div>\n                    \u003c/div>\u003cdiv class=\"flex justify-between items-center bg-white p-2 mb-2 rounded border border-gray-200 shadow-sm gap-2 w-full min-w-0\">\n                        \u003cspan class=\"font-bold text-gray-700 text-sm shrink-0 max-w-[50%] break-words\">coke\u003c/span>\n                        \u003cdiv id=\"drop-vocab-global-h8202g\" data-answer=\"bottle of Coke\" class=\"drop-zone vocab-drop-zone cursor-pointer flex-1 min-w-[100px] !h-auto !min-h-[32px] !leading-snug\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\">\u003c/div>\n                    \u003c/div>\u003cdiv class=\"flex justify-between items-center bg-white p-2 mb-2 rounded border border-gray-200 shadow-sm gap-2 w-full min-w-0\">\n                        \u003cspan class=\"font-bold text-gray-700 text-sm shrink-0 max-w-[50%] break-words\">tea\u003c/span>\n                        \u003cdiv id=\"drop-vocab-global-tr5lfa\" data-answer=\"cup of tea\" class=\"drop-zone vocab-drop-zone cursor-pointer flex-1 min-w-[100px] !h-auto !min-h-[32px] !leading-snug\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\">\u003c/div>\n                    \u003c/div>\u003c/div>\n                        \u003cdiv class=\"flex-1 min-w-0 bg-white p-3 rounded border border-gray-200 shadow-inner flex flex-wrap content-start gap-2\">\u003cdiv id=\"drag-vocab-global-2-7dg95m\" class=\"draggable-item bg-white\" draggable=\"true\" data-val=\"glass of milk\" ondragstart=\"drag(event)\">glass of milk\u003c/div>\u003cdiv id=\"drag-vocab-global-1-vq29tc\" class=\"draggable-item bg-white\" draggable=\"true\" data-val=\"wants an ice cream\" ondragstart=\"drag(event)\">wants an ice cream\u003c/div>\u003cdiv id=\"drag-vocab-global-3-uegeyp\" class=\"draggable-item bg-white\" draggable=\"true\" data-val=\"bottle of Coke\" ondragstart=\"drag(event)\">bottle of Coke\u003c/div>\u003cdiv id=\"drag-vocab-global-4-igg6ai\" class=\"draggable-item bg-white\" draggable=\"true\" data-val=\"cup of tea\" ondragstart=\"drag(event)\">cup of tea\u003c/div>\u003cdiv id=\"drag-vocab-global-0-7zaa6j\" class=\"draggable-item bg-white\" draggable=\"true\" data-val=\"make a sandwich\" ondragstart=\"drag(event)\">make a sandwich\u003c/div>\u003c/div>\n                    \u003c/div>\n                    \u003cdiv class=\"vocab-feedback hidden mt-3 p-2 rounded bg-indigo-100 text-indigo-800 text-xs font-bold border border-indigo-200 text-center\">\u003c/div>\n                \u003c/div>\u003cp class=\"mb-2 text-gray-600 text-sm\">Listen to Jim and Julie talking at a party.\u003c/p>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">What do the guests want to eat or drink?\u003c/h3>\u003cp class=\"mb-2 text-gray-600 text-sm\">For questions 6-10, write a letter A-H next to each person.\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">You will hear the conversation twice.\u003c/p>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">FOOD AND DRINK\u003c/h3>\u003cdiv class=\"bg-blue-50 p-3 rounded mb-4 flex flex-wrap\">\u003cdiv id=\"drag-A\" class=\"draggable-item\" draggable=\"true\" data-val=\"A\" ondragstart=\"drag(event)\">\u003cb>A.\u003c/b> coffee\u003c/div>\u003cdiv id=\"drag-B\" class=\"draggable-item\" draggable=\"true\" data-val=\"B\" ondragstart=\"drag(event)\">\u003cb>B.\u003c/b> coke\u003c/div>\u003cdiv id=\"drag-C\" class=\"draggable-item\" draggable=\"true\" data-val=\"C\" ondragstart=\"drag(event)\">\u003cb>C.\u003c/b> ice-cream\u003c/div>\u003cdiv id=\"drag-D\" class=\"draggable-item\" draggable=\"true\" data-val=\"D\" ondragstart=\"drag(event)\">\u003cb>D.\u003c/b> milk\u003c/div>\u003cdiv id=\"drag-E\" class=\"draggable-item\" draggable=\"true\" data-val=\"E\" ondragstart=\"drag(event)\">\u003cb>E.\u003c/b> orange juice\u003c/div>\u003cdiv id=\"drag-F\" class=\"draggable-item\" draggable=\"true\" data-val=\"F\" ondragstart=\"drag(event)\">\u003cb>F.\u003c/b> sandwich\u003c/div>\u003cdiv id=\"drag-G\" class=\"draggable-item\" draggable=\"true\" data-val=\"G\" ondragstart=\"drag(event)\">\u003cb>G.\u003c/b> tea\u003c/div>\u003cdiv id=\"drag-H\" class=\"draggable-item\" draggable=\"true\" data-val=\"H\" ondragstart=\"drag(event)\">\u003cb>H.\u003c/b> water\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-0\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">\u003cspan class=\"bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[12px] font-bold mr-2 shadow-sm border border-blue-200 inline-block align-middle\">6\u003c/span>Barbara \u003cdiv id=\"drop-auto-0\" class=\"drop-zone cursor-pointer inline-block align-middle\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\" title=\"Nhấn để bỏ Option đã kéo\">\u003c/div> \u003cspan class=\"play-here-btn\" data-time=\"33.601\" onclick=\"playAudioFrom(33.601)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-1\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">\u003cspan class=\"bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[12px] font-bold mr-2 shadow-sm border border-blue-200 inline-block align-middle\">7\u003c/span>Paul \u003cdiv id=\"drop-auto-1\" class=\"drop-zone cursor-pointer inline-block align-middle\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\" title=\"Nhấn để bỏ Option đã kéo\">\u003c/div> \u003cspan class=\"play-here-btn\" data-time=\"37.881\" onclick=\"playAudioFrom(37.881)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-2\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">\u003cspan class=\"bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[12px] font-bold mr-2 shadow-sm border border-blue-200 inline-block align-middle\">8\u003c/span>Diana \u003cdiv id=\"drop-auto-2\" class=\"drop-zone cursor-pointer inline-block align-middle\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\" title=\"Nhấn để bỏ Option đã kéo\">\u003c/div> \u003cspan class=\"play-here-btn\" data-time=\"48.041\" onclick=\"playAudioFrom(48.041)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-3\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">\u003cspan class=\"bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[12px] font-bold mr-2 shadow-sm border border-blue-200 inline-block align-middle\">9\u003c/span>Jim \u003cdiv id=\"drop-auto-3\" class=\"drop-zone cursor-pointer inline-block align-middle\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\" title=\"Nhấn để bỏ Option đã kéo\">\u003c/div> \u003cspan class=\"play-here-btn\" data-time=\"60.149\" onclick=\"playAudioFrom(60.149)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-4\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">\u003cspan class=\"bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[12px] font-bold mr-2 shadow-sm border border-blue-200 inline-block align-middle\">10\u003c/span>Julie \u003cdiv id=\"drop-auto-4\" class=\"drop-zone cursor-pointer inline-block align-middle\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\" title=\"Nhấn để bỏ Option đã kéo\">\u003c/div> \u003cspan class=\"play-here-btn\" data-time=\"67.259\" onclick=\"playAudioFrom(67.259)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>","totalQs":5,"rawTranscript":"{t:4.969, text:'Hello Julie, your new flat is really nice.'},\n{t:9.021, text:'Thanks Jim, it\\'s nice to see all my friends here.'},\n{t:13.030, text:'Yes, the living room is certainly full of people.'},\n{t:17.181, text:'Er, Kevin wants to know if you have any orange juice.'},\n{t:21.490, text:'Yes I have.'},\n{t:23.330, text:'Everybody\\'s hungry or thirsty aren\\'t they?'},\n{t:26.321, text:'Of course, it\\'s a party.'},\n{t:29.641, text:'Would you like me to help you?'},\n{t:31.401, text:'Oh yes please.'},\n{t:33.601, text:'Could you make a sandwich for Barbara?'},\n{t:36.121, text:'What does she want in it?'},\n{t:37.881, text:'She asked for cheese and Paul wants an ice cream.'},\n{t:42.689, text:'Fine.'},\n{t:44.001, text:'I\\'ll make the sandwich and get the ice cream for him.'},\n{t:48.041, text:'What does Diana want?'},\n{t:49.801, text:'She isn\\'t hungry.'},\n{t:51.521, text:'She just wants a glass of milk.'},\n{t:53.921, text:'What about the other guests?'},\n{t:56.201, text:'Do they want anything?'},\n{t:57.841, text:'I don\\'t think so.'},\n{t:60.149, text:'Oh, what about you Jim?'},\n{t:62.681, text:'What do you want?'},\n{t:63.854, text:'I\\'ll just get a bottle of Coke from the fridge.'},\n{t:67.259, text:'Do you want some Julie?'},\n{t:68.881, text:'No thanks.'},\n{t:70.481, text:'After all this work, I need a cup of tea.'},\n{t:79.139, text:'Now listen again.'},\n{t:82.189, text:'Hello Julie, your new flat is really nice.'},\n{t:86.641, text:'Thanks Jim.'},\n{t:87.764, text:'It\\'s nice to see all my friends here.'},\n{t:90.401, text:'Yes.'},\n{t:91.561, text:'The living room is certainly full of people.'},\n{t:94.481, text:'Er, Kevin wants to know if you have any orange juice.'},\n{t:98.761, text:'Yes I have.'},\n{t:100.961, text:'Everybody\\'s hungry or thirsty aren\\'t they?'},\n{t:103.739, text:'Of course, it\\'s a party.'},\n{t:106.921, text:'Would you like me to help you?'},\n{t:108.561, text:'Oh yes please.'},\n{t:110.921, text:'Could you make a sandwich for Barbara?'},\n{t:113.561, text:'What does she want in it?'},\n{t:115.241, text:'She asked for cheese and Paul wants an ice cream.'},\n{t:119.681, text:'Fine.'},\n{t:121.129, text:'I\\'ll make the sandwich and get the ice cream for him.'},\n{t:125.441, text:'What does Diana want?'},\n{t:127.081, text:'She isn\\'t hungry.'},\n{t:128.841, text:'She just wants a glass of milk.'},\n{t:131.401, text:'What about the other guests?'},\n{t:133.441, text:'Do they want anything?'},\n{t:135.001, text:'I don\\'t think so.'},\n{t:137.370, text:'Oh, what about you Jim?'},\n{t:139.921, text:'What do you want?'},\n{t:141.070, text:'I\\'ll just get a bottle of Coke from the fridge.'},\n{t:144.601, text:'You want some, Julie?'},\n{t:145.961, text:'No thanks.'},\n{t:147.681, text:'After all this work, I need a cup of tea.'},\n","rawQuestions":"[VOCAB]\nsandwich | make a sandwich\nice-cream | wants an ice cream\nmilk | glass of milk\ncoke | bottle of Coke\ntea | cup of tea\n[/VOCAB]\n\nListen to Jim and Julie talking at a party.\nWhat do the guests want to eat or drink?\nFor questions 6-10, write a letter A-H next to each person.\nYou will hear the conversation twice.\nFOOD AND DRINK\nA   coffee\nB   coke\nC   ice-cream\nD   milk\nE   orange juice\nF   sandwich\nG   tea\nH   water\n\n6 Barbara ___ [play:33.601]\n7 Paul ___ [play:37.881]\n8 Diana ___ [play:48.041]\n9 Jim ___ [play:60.149]\n10 Julie ___ [play:67.259]\n"},{"name":"EXERCISE 3","audio":"https://englishpracticetest.net/wp-content/uploads/2022/11/a2-test-3-03.mp3","image":"","hideTrans":false,"removeDragged":false,"imgLeft":false,"answerKey":{"q-auto-0":"B","q-auto-1":"C","q-auto-2":"B","q-auto-3":"A","q-auto-4":"A"},"itemImages":{},"processedTranscript":"\u003cp data-time=\"4.199\">\"Now listen to the conversation.\u003c/p>\n\u003cp data-time=\"9.731\">\" \"Hello?\u003c/p>\n\u003cp data-time=\"11.063\">\" \"Good morning.\u003c/p>\n\u003cp data-time=\"12.210\">Can I help you?\"\u003c/p>\n\u003cp data-time=\"13.530\">\"Well, I have to go to Argentina next week, so I\\'d\u003c/p>\n\u003cp data-time=\"17.073\">like some information about flying to Buenos Aires.\u003c/p>\n\u003cp data-time=\"21.726\">\" \"Okay.\u003c/p>\n\u003cp data-time=\"25.600\">Well, there are direct flights on Mondays, Wednesdays and Fridays.\u003c/p>\n\u003cp data-time=\"33.849\">And what time do they leave?\u003c/p>\n\u003cp data-time=\"35.713\">\" \"Apps 2 p.m. on all three days.\u003c/p>\n\u003cp data-time=\"39.332\">\" \"Okay.\u003c/p>\n\u003cp data-time=\"41.161\">Wednesday is best for me.\u003c/p>\n\u003cp data-time=\"43.229\">Now, how can I get to the airport?\u003c/p>\n\u003cp data-time=\"46.161\">Is there a bus?\u003c/p>\n\u003cp data-time=\"49.150\">\" \"Yes, you\\'ll have to check in at the airport\u003c/p>\n\u003cp data-time=\"52.818\">at 12 o\\'clock, so you could take the 10 o\\'clock\u003c/p>\n\u003cp data-time=\"56.641\">coach from the bus station in Mill Street.\u003c/p>\n\u003cp data-time=\"60.189\">\" \"In Mill Street, okay.\u003c/p>\n\u003cp data-time=\"63.201\">How on does the coach take about one and a half hours?\u003c/p>\n\u003cp data-time=\"68.424\">\" \"And how much is a single ticket to Buenos Aires?\u003c/p>\n\u003cp data-time=\"72.007\">\" \"Well, a single to Buenos Aires is 300 pounds.\u003c/p>\n\u003cp data-time=\"77.849\">But if you have a student card, there\\'s a 20% reduction.\u003c/p>\n\u003cp data-time=\"82.111\">\" \"Yes, I\\'ve got a student card, um, yeah, here it is.\u003c/p>\n\u003cp data-time=\"87.524\">\" \"Okay, so the flight will be, uh, 240 pounds.\u003c/p>\n\u003cp data-time=\"94.139\">\" \"Right, and the coach fair.\u003c/p>\n\u003cp data-time=\"96.511\">\" \"That\\'s 13 pounds, 50.\u003c/p>\n\u003cp data-time=\"99.231\">\" \"Okay, I\\'ll book it, please.\u003c/p>\n\u003cp data-time=\"107.558\">\" \"Now listen again.\u003c/p>\n\u003cp data-time=\"109.770\">\" \"Hello.\u003c/p>\n\u003cp data-time=\"111.544\">\" \"Good morning, can I help you?\u003c/p>\n\u003cp data-time=\"114.052\">\" \"Well, I have to go to Argentina next week,\u003c/p>\n\u003cp data-time=\"117.363\">so I\\'d like some information about flying to Buenos Aires.\u003c/p>\n\u003cp data-time=\"121.589\">\"\u003c/p>\n\u003cp data-time=\"125.734\">\"Okay, well, there are direct flights, uh, on Mondays, Wednesdays, and Fridays.\u003c/p>\n\u003cp data-time=\"133.515\">\" \"And what time do they leave?\u003c/p>\n\u003cp data-time=\"136.266\">\" \"That\\'s 2 p.m. on all three days.\u003c/p>\n\u003cp data-time=\"139.869\">\" \"Okay, Wednesday is best for me.\u003c/p>\n\u003cp data-time=\"143.730\">Now, how can I get to the airport?\u003c/p>\n\u003cp data-time=\"146.681\">Is there a bus?\u003c/p>\n\u003cp data-time=\"149.654\">\" \"Yes, you\\'ll have to check in at the airport\u003c/p>\n\u003cp data-time=\"153.325\">at 12 o\\'clock, so you could take the 10 o\\'clock\u003c/p>\n\u003cp data-time=\"157.161\">coach from the bus station in Mill Street.\u003c/p>\n\u003cp data-time=\"160.670\">\" \"In Mill Street, okay.\u003c/p>\n\u003cp data-time=\"163.681\">How on does the coach take about one and a half hours?\u003c/p>\n\u003cp data-time=\"168.897\">\" \"And how much is a single ticket to Buenos Aires?\u003c/p>\n\u003cp data-time=\"173.889\">\" \"Well, a single to Buenos Aires is 300 pounds,\u003c/p>\n\u003cp data-time=\"178.003\">but if you have a student card, there\\'s a 20% reduction.\u003c/p>\n\u003cp data-time=\"182.900\">\"\u003c/p>\n\u003cp data-time=\"182.961\">\"Yes, I\\'ve got a student card, um, yeah, here it is.\u003c/p>\n\u003cp data-time=\"188.033\">\" \"Okay, so the flight will be uh, 240 pounds.\u003c/p>\n\u003cp data-time=\"194.686\">\" \"Right, and the coach fair.\u003c/p>\n\u003cp data-time=\"197.021\">\" \"That\\'s 13 pounds, 15.\u003c/p>\n\u003cp data-time=\"199.870\">\" \"Okay, I\\'ll book it, please.\"\u003c/p>\n","processedQuestions":"\u003cp class=\"mb-2 text-gray-600 text-sm\">Listen to a man asking for information in a travel agency.\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">For questions 11-15, tick (✓) A, B or C.\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">You will hear the conversation twice.\u003c/p>\u003cdiv id=\"q-auto-0\" class=\"question-block bg-white p-3 rounded shadow-sm mb-3 border relative group\">\u003cp class=\"font-bold mb-2\">\u003cspan class=\"q-badge\">11\u003c/span>The plane leaves at\u003cspan class=\"play-here-btn\" data-time=\"33.849\" onclick=\"playAudioFrom(33.849)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/p>\u003cdiv class=\"space-y-1\">\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-0\" value=\"A\">\u003cspan class=\"opt-letter\">A\u003c/span>\u003cspan>12 a.m.\u003c/span>\u003c/label>\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-0\" value=\"B\">\u003cspan class=\"opt-letter\">B\u003c/span>\u003cspan>2 p.m.\u003c/span>\u003c/label>\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-0\" value=\"C\">\u003cspan class=\"opt-letter\">C\u003c/span>\u003cspan>3 p.m.\u003c/span>\u003c/label>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-1\" class=\"question-block bg-white p-3 rounded shadow-sm mb-3 border relative group\">\u003cp class=\"font-bold mb-2\">\u003cspan class=\"q-badge\">12\u003c/span>The bus station is in\u003cspan class=\"play-here-btn\" data-time=\"52.818\" onclick=\"playAudioFrom(52.818)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/p>\u003cdiv class=\"space-y-1\">\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-1\" value=\"A\">\u003cspan class=\"opt-letter\">A\u003c/span>\u003cspan>Bill Street.\u003c/span>\u003c/label>\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-1\" value=\"B\">\u003cspan class=\"opt-letter\">B\u003c/span>\u003cspan>Hill Street.\u003c/span>\u003c/label>\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-1\" value=\"C\">\u003cspan class=\"opt-letter\">C\u003c/span>\u003cspan>Mill Street.\u003c/span>\u003c/label>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-2\" class=\"question-block bg-white p-3 rounded shadow-sm mb-3 border relative group\">\u003cp class=\"font-bold mb-2\">\u003cspan class=\"q-badge\">13\u003c/span>The journey to the airport takes\u003cspan class=\"play-here-btn\" data-time=\"63.201\" onclick=\"playAudioFrom(63.201)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/p>\u003cdiv class=\"space-y-1\">\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-2\" value=\"A\">\u003cspan class=\"opt-letter\">A\u003c/span>\u003cspan>1 hour 15 minutes.\u003c/span>\u003c/label>\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-2\" value=\"B\">\u003cspan class=\"opt-letter\">B\u003c/span>\u003cspan>1 hour 30 minutes.\u003c/span>\u003c/label>\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-2\" value=\"C\">\u003cspan class=\"opt-letter\">C\u003c/span>\u003cspan>1 hour 45 minutes.\u003c/span>\u003c/label>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-3\" class=\"question-block bg-white p-3 rounded shadow-sm mb-3 border relative group\">\u003cp class=\"font-bold mb-2\">\u003cspan class=\"q-badge\">14\u003c/span>The man’s ticket to Buenos Aires will cost\u003cspan class=\"play-here-btn\" data-time=\"68.424\" onclick=\"playAudioFrom(68.424)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/p>\u003cdiv class=\"space-y-1\">\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-3\" value=\"A\">\u003cspan class=\"opt-letter\">A\u003c/span>\u003cspan>£240.\u003c/span>\u003c/label>\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-3\" value=\"B\">\u003cspan class=\"opt-letter\">B\u003c/span>\u003cspan>£300.\u003c/span>\u003c/label>\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-3\" value=\"C\">\u003cspan class=\"opt-letter\">C\u003c/span>\u003cspan>£320.\u003c/span>\u003c/label>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-4\" class=\"question-block bg-white p-3 rounded shadow-sm mb-3 border relative group\">\u003cp class=\"font-bold mb-2\">\u003cspan class=\"q-badge\">15\u003c/span>The coach costs\u003cspan class=\"play-here-btn\" data-time=\"94.139\" onclick=\"playAudioFrom(94.139)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/p>\u003cdiv class=\"space-y-1\">\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-4\" value=\"A\">\u003cspan class=\"opt-letter\">A\u003c/span>\u003cspan>£13.50.\u003c/span>\u003c/label>\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-4\" value=\"B\">\u003cspan class=\"opt-letter\">B\u003c/span>\u003cspan>£14.50.\u003c/span>\u003c/label>\u003clabel class=\"mcq-option\">\u003cinput type=\"radio\" name=\"q-auto-4\" value=\"C\">\u003cspan class=\"opt-letter\">C\u003c/span>\u003cspan>£30.50\u003c/span>\u003c/label>\u003c/div>\u003c/div>","totalQs":5,"rawTranscript":"{t:4.199, text:'\"Now listen to the conversation.'},\n{t:9.731, text:'\" \"Hello?'},\n{t:11.063, text:'\" \"Good morning.'},\n{t:12.210, text:'Can I help you?\"'},\n{t:13.530, text:'\"Well, I have to go to Argentina next week, so I\\'d'},\n{t:17.073, text:'like some information about flying to Buenos Aires.'},\n{t:21.726, text:'\" \"Okay.'},\n{t:25.600, text:'Well, there are direct flights on Mondays, Wednesdays and Fridays.'},\n{t:33.849, text:'And what time do they leave?'},\n{t:35.713, text:'\" \"Apps 2 p.m. on all three days.'},\n{t:39.332, text:'\" \"Okay.'},\n{t:41.161, text:'Wednesday is best for me.'},\n{t:43.229, text:'Now, how can I get to the airport?'},\n{t:46.161, text:'Is there a bus?'},\n{t:49.150, text:'\" \"Yes, you\\'ll have to check in at the airport'},\n{t:52.818, text:'at 12 o\\'clock, so you could take the 10 o\\'clock'},\n{t:56.641, text:'coach from the bus station in Mill Street.'},\n{t:60.189, text:'\" \"In Mill Street, okay.'},\n{t:63.201, text:'How on does the coach take about one and a half hours?'},\n{t:68.424, text:'\" \"And how much is a single ticket to Buenos Aires?'},\n{t:72.007, text:'\" \"Well, a single to Buenos Aires is 300 pounds.'},\n{t:77.849, text:'But if you have a student card, there\\'s a 20% reduction.'},\n{t:82.111, text:'\" \"Yes, I\\'ve got a student card, um, yeah, here it is.'},\n{t:87.524, text:'\" \"Okay, so the flight will be, uh, 240 pounds.'},\n{t:94.139, text:'\" \"Right, and the coach fair.'},\n{t:96.511, text:'\" \"That\\'s 13 pounds, 50.'},\n{t:99.231, text:'\" \"Okay, I\\'ll book it, please.'},\n{t:107.558, text:'\" \"Now listen again.'},\n{t:109.770, text:'\" \"Hello.'},\n{t:111.544, text:'\" \"Good morning, can I help you?'},\n{t:114.052, text:'\" \"Well, I have to go to Argentina next week,'},\n{t:117.363, text:'so I\\'d like some information about flying to Buenos Aires.'},\n{t:121.589, text:'\"'},\n{t:125.734, text:'\"Okay, well, there are direct flights, uh, on Mondays, Wednesdays, and Fridays.'},\n{t:133.515, text:'\" \"And what time do they leave?'},\n{t:136.266, text:'\" \"That\\'s 2 p.m. on all three days.'},\n{t:139.869, text:'\" \"Okay, Wednesday is best for me.'},\n{t:143.730, text:'Now, how can I get to the airport?'},\n{t:146.681, text:'Is there a bus?'},\n{t:149.654, text:'\" \"Yes, you\\'ll have to check in at the airport'},\n{t:153.325, text:'at 12 o\\'clock, so you could take the 10 o\\'clock'},\n{t:157.161, text:'coach from the bus station in Mill Street.'},\n{t:160.670, text:'\" \"In Mill Street, okay.'},\n{t:163.681, text:'How on does the coach take about one and a half hours?'},\n{t:168.897, text:'\" \"And how much is a single ticket to Buenos Aires?'},\n{t:173.889, text:'\" \"Well, a single to Buenos Aires is 300 pounds,'},\n{t:178.003, text:'but if you have a student card, there\\'s a 20% reduction.'},\n{t:182.900, text:'\"'},\n{t:182.961, text:'\"Yes, I\\'ve got a student card, um, yeah, here it is.'},\n{t:188.033, text:'\" \"Okay, so the flight will be uh, 240 pounds.'},\n{t:194.686, text:'\" \"Right, and the coach fair.'},\n{t:197.021, text:'\" \"That\\'s 13 pounds, 15.'},\n{t:199.870, text:'\" \"Okay, I\\'ll book it, please.\"'},\n","rawQuestions":"Listen to a man asking for information in a travel agency.\nFor questions 11-15, tick (✓) A, B or C.\nYou will hear the conversation twice.\n\n11   The plane leaves at[play:33.849]  \n        A   12 a.m.\n        B   2 p.m.\n        C   3 p.m.\n12   The bus station is in[play:52.818]  \n        A   Bill Street.\n        B   Hill Street.\n        C   Mill Street.\n13   The journey to the airport takes[play:63.201]  \n        A   1 hour 15 minutes.\n        B   1 hour 30 minutes.\n        C   1 hour 45 minutes.\n14   The man’s ticket to Buenos Aires will cost[play:68.424]  \n        A   £240.\n        B   £300.\n        C   £320.\n15   The coach costs[play:94.139]  \n        A   £13.50.\n        B   £14.50.\n        C   £30.50\n"},{"name":"EXERCISE 4","audio":"https://englishpracticetest.net/wp-content/uploads/2022/11/a2-test-3-04.mp3","image":"","hideTrans":false,"removeDragged":false,"imgLeft":false,"answerKey":{"input-auto-0":"City","input-auto-4":"magazines","input-auto-1":"G8","input-auto-2":"3rd / third","input-auto-3":"7 o’clock / 7 p.m"},"itemImages":{},"processedTranscript":"\u003cp data-time=\"4.609\">Excuse me. You\\'re a friend of Tony, aren\\'t you?\u003c/p>\n\u003cp data-time=\"8.660\">Yes. Why?\u003c/p>\n\u003cp data-time=\"10.590\">Oh, he\\'s had an accident. I\\'m his sister.\u003c/p>\n\u003cp data-time=\"14.881\">He wants his school friends to visit him in hospital.\u003c/p>\n\u003cp data-time=\"18.241\">Oh dear. That\\'s terrible. Is he okay?\u003c/p>\n\u003cp data-time=\"22.441\">He fell off his bicycle and hurt his leg. But he\\'s not too bad.\u003c/p>\n\u003cp data-time=\"27.401\">Which hospital is he in? The city hospital. Near the university.\u003c/p>\n\u003cp data-time=\"33.521\">You know where it is, don\\'t you?\u003c/p>\n\u003cp data-time=\"35.161\">Yes. Oh, Portoni.\u003c/p>\n\u003cp data-time=\"38.921\">His rooms. G8.\u003c/p>\n\u003cp data-time=\"42.561\">Okay. Is the room easy to find?\u003c/p>\n\u003cp data-time=\"46.161\">Yes. It\\'s on the third floor, near the left.\u003c/p>\n\u003cp data-time=\"50.601\">And when can we visit him?\u003c/p>\n\u003cp data-time=\"52.721\">Well, the visiting hours are from four to seven every day.\u003c/p>\n\u003cp data-time=\"59.561\">Well, I\\'ll go after school today.\u003c/p>\n\u003cp data-time=\"62.539\">Does he want anything?\u003c/p>\n\u003cp data-time=\"64.201\">I expect something to read would be nice. Some magazines, perhaps.\u003c/p>\n\u003cp data-time=\"69.121\">Okay. I\\'ll take him some.\u003c/p>\n\u003cp data-time=\"76.681\">Now listen again.\u003c/p>\n\u003cp data-time=\"79.841\">Excuse me. You\\'re a friend of Tony, aren\\'t you?\u003c/p>\n\u003cp data-time=\"83.889\">Yes. Why?\u003c/p>\n\u003cp data-time=\"85.801\">Oh, he\\'s had an accident. I\\'m your sister.\u003c/p>\n\u003cp data-time=\"90.001\">He wants his school friends to visit him in hospital.\u003c/p>\n\u003cp data-time=\"93.320\">Oh dear. That\\'s terrible. Is he okay?\u003c/p>\n\u003cp data-time=\"97.561\">He fell off his bicycle and hurt his leg.\u003c/p>\n\u003cp data-time=\"100.600\">But he\\'s not too bad.\u003c/p>\n\u003cp data-time=\"102.521\">Which hospital is he in?\u003c/p>\n\u003cp data-time=\"104.561\">The city hospital. Near the university.\u003c/p>\n\u003cp data-time=\"108.561\">You know where it is, don\\'t you?\u003c/p>\n\u003cp data-time=\"110.561\">Yes.\u003c/p>\n\u003cp data-time=\"111.720\">Portoni.\u003c/p>\n\u003cp data-time=\"113.961\">His rooms. G8.\u003c/p>\n\u003cp data-time=\"117.680\">Okay. Is the room easy to find?\u003c/p>\n\u003cp data-time=\"121.321\">Yes. It\\'s on the third floor, near the left.\u003c/p>\n\u003cp data-time=\"125.681\">And when can we visit him?\u003c/p>\n\u003cp data-time=\"127.880\">Well, the visiting hours are from four to seven every day.\u003c/p>\n\u003cp data-time=\"134.721\">Well, I\\'ll go after school today.\u003c/p>\n\u003cp data-time=\"137.765\">Does he want anything?\u003c/p>\n\u003cp data-time=\"139.361\">I expect something to read would be nice.\u003c/p>\n\u003cp data-time=\"142.481\">Some magazines, perhaps.\u003c/p>\n\u003cp data-time=\"144.321\">Okay. I\\'ll take him some.\u003c/p>\n","processedQuestions":"\u003cp class=\"mb-2 text-gray-600 text-sm\">You will hear a girl talking about her brother, Toni.\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">Listen and complete questions 16-20 with NO MORE THAN TWO WORDS AND/OR A NUMBER\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">You will hear the conversation twice.\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">Toni’s had an accident.\u003c/p>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">He’s hurt his: leg\u003c/h3>\u003cdiv id=\"q-auto-0\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Name of hospital:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">16\u003c/span>\u003cinput type=\"text\" id=\"input-auto-0\" class=\"mx-1 inline-block align-middle\"> \u003cspan class=\"play-here-btn\" data-time=\"27.401\" onclick=\"playAudioFrom(27.401)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-1\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Room:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">17\u003c/span>\u003cinput type=\"text\" id=\"input-auto-1\" class=\"mx-1 inline-block align-middle\"> \u003cspan class=\"play-here-btn\" data-time=\"38.921\" onclick=\"playAudioFrom(38.921)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-2\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Floor:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">18\u003c/span>\u003cinput type=\"text\" id=\"input-auto-2\" class=\"mx-1 inline-block align-middle\"> \u003cspan class=\"play-here-btn\" data-time=\"46.161\" onclick=\"playAudioFrom(46.161)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-3\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Visiting hours: 4 p.m. to\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">19\u003c/span>\u003cinput type=\"text\" id=\"input-auto-3\" class=\"mx-1 inline-block align-middle\"> every day \u003cspan class=\"play-here-btn\" data-time=\"50.601\" onclick=\"playAudioFrom(50.601)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-4\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Please take:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">20\u003c/span>\u003cinput type=\"text\" id=\"input-auto-4\" class=\"mx-1 inline-block align-middle\"> \u003cspan class=\"play-here-btn\" data-time=\"62.539\" onclick=\"playAudioFrom(62.539)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>","totalQs":5,"rawTranscript":"{t:4.609, text:'Excuse me. You\\'re a friend of Tony, aren\\'t you?'},\n{t:8.660, text:'Yes. Why?'},\n{t:10.590, text:'Oh, he\\'s had an accident. I\\'m his sister.'},\n{t:14.881, text:'He wants his school friends to visit him in hospital.'},\n{t:18.241, text:'Oh dear. That\\'s terrible. Is he okay?'},\n{t:22.441, text:'He fell off his bicycle and hurt his leg. But he\\'s not too bad.'},\n{t:27.401, text:'Which hospital is he in? The city hospital. Near the university.'},\n{t:33.521, text:'You know where it is, don\\'t you?'},\n{t:35.161, text:'Yes. Oh, Portoni.'},\n{t:38.921, text:'His rooms. G8.'},\n{t:42.561, text:'Okay. Is the room easy to find?'},\n{t:46.161, text:'Yes. It\\'s on the third floor, near the left.'},\n{t:50.601, text:'And when can we visit him?'},\n{t:52.721, text:'Well, the visiting hours are from four to seven every day.'},\n{t:59.561, text:'Well, I\\'ll go after school today.'},\n{t:62.539, text:'Does he want anything?'},\n{t:64.201, text:'I expect something to read would be nice. Some magazines, perhaps.'},\n{t:69.121, text:'Okay. I\\'ll take him some.'},\n{t:76.681, text:'Now listen again.'},\n{t:79.841, text:'Excuse me. You\\'re a friend of Tony, aren\\'t you?'},\n{t:83.889, text:'Yes. Why?'},\n{t:85.801, text:'Oh, he\\'s had an accident. I\\'m your sister.'},\n{t:90.001, text:'He wants his school friends to visit him in hospital.'},\n{t:93.320, text:'Oh dear. That\\'s terrible. Is he okay?'},\n{t:97.561, text:'He fell off his bicycle and hurt his leg.'},\n{t:100.600, text:'But he\\'s not too bad.'},\n{t:102.521, text:'Which hospital is he in?'},\n{t:104.561, text:'The city hospital. Near the university.'},\n{t:108.561, text:'You know where it is, don\\'t you?'},\n{t:110.561, text:'Yes.'},\n{t:111.720, text:'Portoni.'},\n{t:113.961, text:'His rooms. G8.'},\n{t:117.680, text:'Okay. Is the room easy to find?'},\n{t:121.321, text:'Yes. It\\'s on the third floor, near the left.'},\n{t:125.681, text:'And when can we visit him?'},\n{t:127.880, text:'Well, the visiting hours are from four to seven every day.'},\n{t:134.721, text:'Well, I\\'ll go after school today.'},\n{t:137.765, text:'Does he want anything?'},\n{t:139.361, text:'I expect something to read would be nice.'},\n{t:142.481, text:'Some magazines, perhaps.'},\n{t:144.321, text:'Okay. I\\'ll take him some.'},\n","rawQuestions":"You will hear a girl talking about her brother, Toni.\nListen and complete questions 16-20 with NO MORE THAN TWO WORDS AND/OR A NUMBER\nYou will hear the conversation twice.\nToni’s had an accident.\nHe’s hurt his: leg \nName of hospital: 16 _______________ [play:27.401]\nRoom: 17 _______________ [play:38.921]\nFloor: 18 _______________ [play:46.161]\nVisiting hours: 4 p.m. to 19 _______________ every day [play:50.601]\nPlease take: 20 _______________ [play:62.539]\n\n"},{"name":"EXERCISE 5","audio":"https://englishpracticetest.net/wp-content/uploads/2022/11/a2-test-3-05.mp3","image":"","hideTrans":false,"removeDragged":false,"imgLeft":false,"answerKey":{"input-auto-0":"Black","input-auto-1":"10.30 / half past ten","input-auto-2":"17","input-auto-3":"dog / your dog/dog","input-auto-4":"river/the river"},"itemImages":{},"processedTranscript":"\u003cp data-time=\"9.530\">This weekend, why not visit Park Farm in the\u003c/p>\n\u003cp data-time=\"13.541\">lovely village of Newhampton for a day in\u003c/p>\n\u003cp data-time=\"17.281\">the country that the whole family will enjoy.\u003c/p>\n\u003cp data-time=\"22.321\">Come and see the farm animals, go for a walk\u003c/p>\n\u003cp data-time=\"25.820\">across the fields, and take the children to the minisou.\u003c/p>\n\u003cp data-time=\"31.961\">Afterwards you can look around the gift shop\u003c/p>\n\u003cp data-time=\"35.243\">or have a snack or a drink in the black cat\\'s tea room.\u003c/p>\n\u003cp data-time=\"40.721\">From the tea room you can watch your children playing outside.\u003c/p>\n\u003cp data-time=\"47.001\">Park Farm is open every day from half past ten in the morning to five o\\'clock in the\u003c/p>\n\u003cp data-time=\"55.050\">evening, an adult ticket costs six pounds and\u003c/p>\n\u003cp data-time=\"59.115\">children between three and sixteen pay four pounds.\u003c/p>\n\u003cp data-time=\"65.281\">But you can save money with a family ticket which costs 17 pounds.\u003c/p>\n\u003cp data-time=\"72.441\">Dogs are not allowed on the farm, so please leave your dog at home.\u003c/p>\n\u003cp data-time=\"78.441\">To find Park Farm, follow the signs in the village.\u003c/p>\n\u003cp data-time=\"83.161\">The farm is very near to the river.\u003c/p>\n\u003cp data-time=\"86.841\">We look forward to seeing you soon at Park Farm.\u003c/p>\n\u003cp data-time=\"96.769\">Now listen again.\u003c/p>\n\u003cp data-time=\"100.081\">This weekend, why not visit Park Farm in the\u003c/p>\n\u003cp data-time=\"103.857\">lovely village of Newhampton for a day in\u003c/p>\n\u003cp data-time=\"107.323\">the country that the whole family will enjoy?\u003c/p>\n\u003cp data-time=\"112.601\">Come and see the farm animals, go for a walk\u003c/p>\n\u003cp data-time=\"116.183\">across the fields, and take the children to the minisou.\u003c/p>\n\u003cp data-time=\"122.281\">Afterwards you can look around the gift shop\u003c/p>\n\u003cp data-time=\"125.642\">or have a snack or a drink in the black cat\\'s tea room.\u003c/p>\n\u003cp data-time=\"131.081\">From the tea room you can watch your children playing outside.\u003c/p>\n\u003cp data-time=\"137.520\">Park Farm is open every day from half past 10\u003c/p>\n\u003cp data-time=\"141.476\">in the morning to five o\\'clock in the evening,\u003c/p>\n\u003cp data-time=\"147.560\">an adult ticket costs six pounds and children\u003c/p>\n\u003cp data-time=\"151.697\">between three and sixteen pay four pounds.\u003c/p>\n\u003cp data-time=\"155.561\">But you can save money with a family ticket which costs 17 pounds.\u003c/p>\n\u003cp data-time=\"162.761\">These are not allowed on the farm, so please leave your dog at home.\u003c/p>\n\u003cp data-time=\"168.681\">To find Park Farm, follow the signs in the village.\u003c/p>\n\u003cp data-time=\"173.441\">The farm is very near to the river.\u003c/p>\n\u003cp data-time=\"177.121\">We look forward to seeing you soon at Park Farm.\u003c/p>\n","processedQuestions":"\u003cp class=\"mb-2 text-gray-600 text-sm\">You will hear some information about a farm.\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">Listen and complete questions 21-25 with NO MORE THAN THREE WORDS AND/OR A NUMBER\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">You will hear the information twice.\u003c/p>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">PARK FARM\u003c/h3>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">To see: Farm Animals\u003c/h3>\u003cdiv id=\"q-auto-0\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Food in:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">21\u003c/span>\u003cinput type=\"text\" id=\"input-auto-0\" class=\"mx-1 inline-block align-middle\"> Cat Tea Room \u003cspan class=\"play-here-btn\" data-time=\"31.961\" onclick=\"playAudioFrom(31.961)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-1\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Opens at:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">22\u003c/span>\u003cinput type=\"text\" id=\"input-auto-1\" class=\"mx-1 inline-block align-middle\"> \u003cspan class=\"play-here-btn\" data-time=\"47.001\" onclick=\"playAudioFrom(47.001)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cp class=\"mb-2 text-gray-600 text-sm\">Closes at: 5 p.m.\u003c/p>\u003cdiv id=\"q-auto-2\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Family ticket costs: £\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">23\u003c/span>\u003cinput type=\"text\" id=\"input-auto-2\" class=\"mx-1 inline-block align-middle\"> \u003cspan class=\"play-here-btn\" data-time=\"65.281\" onclick=\"playAudioFrom(65.281)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-3\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Don’t bring:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">24\u003c/span>\u003cinput type=\"text\" id=\"input-auto-3\" class=\"mx-1 inline-block align-middle\"> \u003cspan class=\"play-here-btn\" data-time=\"72.441\" onclick=\"playAudioFrom(72.441)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-4\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Not far from:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">25\u003c/span>\u003cinput type=\"text\" id=\"input-auto-4\" class=\"mx-1 inline-block align-middle\"> \u003cspan class=\"play-here-btn\" data-time=\"83.161\" onclick=\"playAudioFrom(83.161)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>","totalQs":5,"rawTranscript":"{t:9.530, text:'This weekend, why not visit Park Farm in the'},\n{t:13.541, text:'lovely village of Newhampton for a day in'},\n{t:17.281, text:'the country that the whole family will enjoy.'},\n{t:22.321, text:'Come and see the farm animals, go for a walk'},\n{t:25.820, text:'across the fields, and take the children to the minisou.'},\n{t:31.961, text:'Afterwards you can look around the gift shop'},\n{t:35.243, text:'or have a snack or a drink in the black cat\\'s tea room.'},\n{t:40.721, text:'From the tea room you can watch your children playing outside.'},\n{t:47.001, text:'Park Farm is open every day from half past ten in the morning to five o\\'clock in the'},\n{t:55.050, text:'evening, an adult ticket costs six pounds and'},\n{t:59.115, text:'children between three and sixteen pay four pounds.'},\n{t:65.281, text:'But you can save money with a family ticket which costs 17 pounds.'},\n{t:72.441, text:'Dogs are not allowed on the farm, so please leave your dog at home.'},\n{t:78.441, text:'To find Park Farm, follow the signs in the village.'},\n{t:83.161, text:'The farm is very near to the river.'},\n{t:86.841, text:'We look forward to seeing you soon at Park Farm.'},\n{t:96.769, text:'Now listen again.'},\n{t:100.081, text:'This weekend, why not visit Park Farm in the'},\n{t:103.857, text:'lovely village of Newhampton for a day in'},\n{t:107.323, text:'the country that the whole family will enjoy?'},\n{t:112.601, text:'Come and see the farm animals, go for a walk'},\n{t:116.183, text:'across the fields, and take the children to the minisou.'},\n{t:122.281, text:'Afterwards you can look around the gift shop'},\n{t:125.642, text:'or have a snack or a drink in the black cat\\'s tea room.'},\n{t:131.081, text:'From the tea room you can watch your children playing outside.'},\n{t:137.520, text:'Park Farm is open every day from half past 10'},\n{t:141.476, text:'in the morning to five o\\'clock in the evening,'},\n{t:147.560, text:'an adult ticket costs six pounds and children'},\n{t:151.697, text:'between three and sixteen pay four pounds.'},\n{t:155.561, text:'But you can save money with a family ticket which costs 17 pounds.'},\n{t:162.761, text:'These are not allowed on the farm, so please leave your dog at home.'},\n{t:168.681, text:'To find Park Farm, follow the signs in the village.'},\n{t:173.441, text:'The farm is very near to the river.'},\n{t:177.121, text:'We look forward to seeing you soon at Park Farm.'},\n","rawQuestions":"You will hear some information about a farm.\nListen and complete questions 21-25 with NO MORE THAN THREE WORDS AND/OR A NUMBER\nYou will hear the information twice.\nPARK FARM\nTo see: Farm Animals \nFood in: 21 _______________ Cat Tea Room [play:31.961]\nOpens at: 22 _______________ [play:47.001]\nCloses at: 5 p.m. \nFamily ticket costs: £ 23 _______________ [play:65.281]\nDon’t bring: 24 _______________ [play:72.441]\nNot far from: 25 _______________ [play:83.161]\n\n"},{"name":"EXERCISE 7","audio":"https://englishpracticetest.net/wp-content/uploads/2022/11/a2-test-4-02.mp3","image":"","hideTrans":false,"removeDragged":true,"imgLeft":false,"answerKey":{"drop-auto-0":"E","drop-auto-1":"F","drop-auto-2":"B","drop-auto-3":"G","drop-auto-4":"D"},"itemImages":{},"processedTranscript":"\u003cp data-time=\"4.859\">Who? As I\\'m visiting your family at Christmas, I\\'d like to take them some presents.\u003c/p>\n\u003cp data-time=\"11.561\">What do you suggest? Oh, that\\'s a good idea.\u003c/p>\n\u003cp data-time=\"15.121\">Well, let\\'s start with my brothers, Kevin likes reading, so buy him a book, and John\u003c/p>\n\u003cp data-time=\"22.269\">really likes sports, so something to do with\u003c/p>\n\u003cp data-time=\"27.160\">football might be about a football shirt.\u003c/p>\n\u003cp data-time=\"30.887\">Fine. Then there\\'s Anne. She loves the theatre,\u003c/p>\n\u003cp data-time=\"35.161\">so you could get her some tickets to a show.\u003c/p>\n\u003cp data-time=\"38.660\">Alright. Now, what about your parents?\u003c/p>\n\u003cp data-time=\"41.694\">What are they interested in? Well, my mother likes\u003c/p>\n\u003cp data-time=\"45.638\">classical music, but my father just likes\u003c/p>\n\u003cp data-time=\"49.600\">watching television. So I can get her a cassette\u003c/p>\n\u003cp data-time=\"53.729\">and in the video. The cassette\\'s a good idea.\u003c/p>\n\u003cp data-time=\"58.320\">I\\'m not sure about the video. Then what about a tie?\u003c/p>\n\u003cp data-time=\"63.141\">Oh yes, he\\'d like that. Fine.\u003c/p>\n\u003cp data-time=\"65.847\">That only leaves you poor. What would you like for Christmas?\u003c/p>\n\u003cp data-time=\"70.231\">Well, I\\'d like to go out for dinner one day.\u003c/p>\n\u003cp data-time=\"81.513\">Okay, we can do that. Now listen again.\u003c/p>\n\u003cp data-time=\"83.899\">Cool. As I\\'m visiting your family at Christmas, I\\'d like to take them some presents.\u003c/p>\n\u003cp data-time=\"90.171\">What do you suggest? Oh, that\\'s a good idea.\u003c/p>\n\u003cp data-time=\"93.839\">Well, let\\'s start with my brothers, Kevin likes\u003c/p>\n\u003cp data-time=\"98.160\">reading, so buy him a book, and John really\u003c/p>\n\u003cp data-time=\"102.025\">likes sports, so something to do with football\u003c/p>\n\u003cp data-time=\"106.520\">might be about a football shirt. Fine.\u003c/p>\n\u003cp data-time=\"109.834\">Then there\\'s Anne. She loves the theatre, so you could\u003c/p>\n\u003cp data-time=\"114.521\">get her some tickets to a show. Alright.\u003c/p>\n\u003cp data-time=\"117.695\">Now, what about your parents? What are they interested\u003c/p>\n\u003cp data-time=\"121.961\">in? Well, my mother likes classical music,\u003c/p>\n\u003cp data-time=\"125.417\">but my father just likes watching television.\u003c/p>\n\u003cp data-time=\"129.950\">So I can get her a cassette and in the video.\u003c/p>\n\u003cp data-time=\"134.105\">The cassette\\'s a good idea. I\\'m not sure\u003c/p>\n\u003cp data-time=\"138.080\">about the video. Then what about a tie? Oh yes, he\\'d like that. Fine. That only leaves\u003c/p>\n\u003cp data-time=\"146.081\">you poor. What would you like for Christmas?\u003c/p>\n\u003cp data-time=\"149.410\">Well, I\\'d like to go out for dinner one day.\u003c/p>\n\u003cp data-time=\"152.741\">Okay, we can do that.\u003c/p>\n","processedQuestions":"\u003cdiv class=\"vocab-block mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200 select-none\">\n                    \u003cdiv class=\"flex justify-between items-center mb-3\">\n                        \u003ch3 class=\"font-bold text-indigo-800 text-sm uppercase\">\u003ci class=\"fa-solid fa-link mr-2\">\u003c/i>Vocabulary Matching\u003c/h3>\n                        \u003cbutton onclick=\"checkVocabMatching(this)\" class=\"bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1 rounded shadow transition\">\u003ci class=\"fa-solid fa-check mr-1\">\u003c/i> Check Vocab\u003c/button>\n                    \u003c/div>\n                    \u003cdiv class=\"flex flex-col md:flex-row gap-4 w-full\">\n                        \u003cdiv class=\"flex-1 min-w-0\">\u003cdiv class=\"flex justify-between items-center bg-white p-2 mb-2 rounded border border-gray-200 shadow-sm gap-2 w-full min-w-0\">\n                        \u003cspan class=\"font-bold text-gray-700 text-sm shrink-0 max-w-[50%] break-words\">shirt\u003c/span>\n                        \u003cdiv id=\"drop-vocab-global-7ns79\" data-answer=\"football shirt\" class=\"drop-zone vocab-drop-zone cursor-pointer flex-1 min-w-[100px] !h-auto !min-h-[32px] !leading-snug\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\">\u003c/div>\n                    \u003c/div>\u003cdiv class=\"flex justify-between items-center bg-white p-2 mb-2 rounded border border-gray-200 shadow-sm gap-2 w-full min-w-0\">\n                        \u003cspan class=\"font-bold text-gray-700 text-sm shrink-0 max-w-[50%] break-words\">theatre tickets\u003c/span>\n                        \u003cdiv id=\"drop-vocab-global-yvck2k\" data-answer=\"tickets to a show\" class=\"drop-zone vocab-drop-zone cursor-pointer flex-1 min-w-[100px] !h-auto !min-h-[32px] !leading-snug\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\">\u003c/div>\n                    \u003c/div>\u003cdiv class=\"flex justify-between items-center bg-white p-2 mb-2 rounded border border-gray-200 shadow-sm gap-2 w-full min-w-0\">\n                        \u003cspan class=\"font-bold text-gray-700 text-sm shrink-0 max-w-[50%] break-words\">cassette\u003c/span>\n                        \u003cdiv id=\"drop-vocab-global-5svtoh\" data-answer=\"get her a cassette\" class=\"drop-zone vocab-drop-zone cursor-pointer flex-1 min-w-[100px] !h-auto !min-h-[32px] !leading-snug\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\">\u003c/div>\n                    \u003c/div>\u003cdiv class=\"flex justify-between items-center bg-white p-2 mb-2 rounded border border-gray-200 shadow-sm gap-2 w-full min-w-0\">\n                        \u003cspan class=\"font-bold text-gray-700 text-sm shrink-0 max-w-[50%] break-words\">tie\u003c/span>\n                        \u003cdiv id=\"drop-vocab-global-1otpyl\" data-answer=\"what about a tie\" class=\"drop-zone vocab-drop-zone cursor-pointer flex-1 min-w-[100px] !h-auto !min-h-[32px] !leading-snug\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\">\u003c/div>\n                    \u003c/div>\u003cdiv class=\"flex justify-between items-center bg-white p-2 mb-2 rounded border border-gray-200 shadow-sm gap-2 w-full min-w-0\">\n                        \u003cspan class=\"font-bold text-gray-700 text-sm shrink-0 max-w-[50%] break-words\">meal\u003c/span>\n                        \u003cdiv id=\"drop-vocab-global-ch9v9f\" data-answer=\"go out for dinner\" class=\"drop-zone vocab-drop-zone cursor-pointer flex-1 min-w-[100px] !h-auto !min-h-[32px] !leading-snug\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\">\u003c/div>\n                    \u003c/div>\u003c/div>\n                        \u003cdiv class=\"flex-1 min-w-0 bg-white p-3 rounded border border-gray-200 shadow-inner flex flex-wrap content-start gap-2\">\u003cdiv id=\"drag-vocab-global-3-qrsyni\" class=\"draggable-item bg-white\" draggable=\"true\" data-val=\"what about a tie\" ondragstart=\"drag(event)\">what about a tie\u003c/div>\u003cdiv id=\"drag-vocab-global-0-6913jj\" class=\"draggable-item bg-white\" draggable=\"true\" data-val=\"football shirt\" ondragstart=\"drag(event)\">football shirt\u003c/div>\u003cdiv id=\"drag-vocab-global-1-cxsezz\" class=\"draggable-item bg-white\" draggable=\"true\" data-val=\"tickets to a show\" ondragstart=\"drag(event)\">tickets to a show\u003c/div>\u003cdiv id=\"drag-vocab-global-4-381yzi\" class=\"draggable-item bg-white\" draggable=\"true\" data-val=\"go out for dinner\" ondragstart=\"drag(event)\">go out for dinner\u003c/div>\u003cdiv id=\"drag-vocab-global-2-x6z8s\" class=\"draggable-item bg-white\" draggable=\"true\" data-val=\"get her a cassette\" ondragstart=\"drag(event)\">get her a cassette\u003c/div>\u003c/div>\n                    \u003c/div>\n                    \u003cdiv class=\"vocab-feedback hidden mt-3 p-2 rounded bg-indigo-100 text-indigo-800 text-xs font-bold border border-indigo-200 text-center\">\u003c/div>\n                \u003c/div>\u003cp class=\"mb-2 text-gray-600 text-sm\">Listen to Teresa talking to Paul about presents for his family.\u003c/p>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">What is she going to buy for each person?\u003c/h3>\u003cp class=\"mb-2 text-gray-600 text-sm\">For questions 6-10, write a letter A-H next to each person.\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">You will hear the conversation twice.\u003c/p>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">PRESENTS\u003c/h3>\u003cdiv class=\"bg-blue-50 p-3 rounded mb-4 flex flex-wrap\">\u003cdiv id=\"drag-A\" class=\"draggable-item\" draggable=\"true\" data-val=\"A\" ondragstart=\"drag(event)\">\u003cb>A.\u003c/b> book\u003c/div>\u003cdiv id=\"drag-B\" class=\"draggable-item\" draggable=\"true\" data-val=\"B\" ondragstart=\"drag(event)\">\u003cb>B.\u003c/b> cassette\u003c/div>\u003cdiv id=\"drag-C\" class=\"draggable-item\" draggable=\"true\" data-val=\"C\" ondragstart=\"drag(event)\">\u003cb>C.\u003c/b> football\u003c/div>\u003cdiv id=\"drag-D\" class=\"draggable-item\" draggable=\"true\" data-val=\"D\" ondragstart=\"drag(event)\">\u003cb>D.\u003c/b> meal\u003c/div>\u003cdiv id=\"drag-E\" class=\"draggable-item\" draggable=\"true\" data-val=\"E\" ondragstart=\"drag(event)\">\u003cb>E.\u003c/b> shirt\u003c/div>\u003cdiv id=\"drag-F\" class=\"draggable-item\" draggable=\"true\" data-val=\"F\" ondragstart=\"drag(event)\">\u003cb>F.\u003c/b> theatre tickets\u003c/div>\u003cdiv id=\"drag-G\" class=\"draggable-item\" draggable=\"true\" data-val=\"G\" ondragstart=\"drag(event)\">\u003cb>G.\u003c/b> tie\u003c/div>\u003cdiv id=\"drag-H\" class=\"draggable-item\" draggable=\"true\" data-val=\"H\" ondragstart=\"drag(event)\">\u003cb>H.\u003c/b> video\u003c/div>\u003c/div>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">PEOPLE\u003c/h3>\u003cdiv id=\"q-auto-0\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">\u003cspan class=\"bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[12px] font-bold mr-2 shadow-sm border border-blue-200 inline-block align-middle\">6\u003c/span>Jon \u003cdiv id=\"drop-auto-0\" class=\"drop-zone cursor-pointer inline-block align-middle\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\" title=\"Nhấn để bỏ Option đã kéo\">\u003c/div> \u003cspan class=\"play-here-btn\" data-time=\"22.269\" onclick=\"playAudioFrom(22.269)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-1\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">\u003cspan class=\"bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[12px] font-bold mr-2 shadow-sm border border-blue-200 inline-block align-middle\">7\u003c/span>Ann \u003cdiv id=\"drop-auto-1\" class=\"drop-zone cursor-pointer inline-block align-middle\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\" title=\"Nhấn để bỏ Option đã kéo\">\u003c/div> \u003cspan class=\"play-here-btn\" data-time=\"30.887\" onclick=\"playAudioFrom(30.887)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-2\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">\u003cspan class=\"bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[12px] font-bold mr-2 shadow-sm border border-blue-200 inline-block align-middle\">8\u003c/span>Mother \u003cdiv id=\"drop-auto-2\" class=\"drop-zone cursor-pointer inline-block align-middle\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\" title=\"Nhấn để bỏ Option đã kéo\">\u003c/div> \u003cspan class=\"play-here-btn\" data-time=\"41.694\" onclick=\"playAudioFrom(41.694)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-3\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">\u003cspan class=\"bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[12px] font-bold mr-2 shadow-sm border border-blue-200 inline-block align-middle\">9\u003c/span>Father \u003cdiv id=\"drop-auto-3\" class=\"drop-zone cursor-pointer inline-block align-middle\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\" title=\"Nhấn để bỏ Option đã kéo\">\u003c/div> \u003cspan class=\"play-here-btn\" data-time=\"45.638\" onclick=\"playAudioFrom(45.638)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-4\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">\u003cspan class=\"bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[12px] font-bold mr-2 shadow-sm border border-blue-200 inline-block align-middle\">10\u003c/span>Paul \u003cdiv id=\"drop-auto-4\" class=\"drop-zone cursor-pointer inline-block align-middle\" onclick=\"handleDropZoneClick(event)\" ondrop=\"drop(event)\" ondragover=\"allowDrop(event)\" ondragleave=\"dragLeave(event)\" title=\"Nhấn để bỏ Option đã kéo\">\u003c/div> \u003cspan class=\"play-here-btn\" data-time=\"65.847\" onclick=\"playAudioFrom(65.847)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>","totalQs":5,"rawTranscript":"{t:4.859, text:'Who? As I\\'m visiting your family at Christmas, I\\'d like to take them some presents.'},\n{t:11.561, text:'What do you suggest? Oh, that\\'s a good idea.'},\n{t:15.121, text:'Well, let\\'s start with my brothers, Kevin likes reading, so buy him a book, and John'},\n{t:22.269, text:'really likes sports, so something to do with'},\n{t:27.160, text:'football might be about a football shirt.'},\n{t:30.887, text:'Fine. Then there\\'s Anne. She loves the theatre,'},\n{t:35.161, text:'so you could get her some tickets to a show.'},\n{t:38.660, text:'Alright. Now, what about your parents?'},\n{t:41.694, text:'What are they interested in? Well, my mother likes'},\n{t:45.638, text:'classical music, but my father just likes'},\n{t:49.600, text:'watching television. So I can get her a cassette'},\n{t:53.729, text:'and in the video. The cassette\\'s a good idea.'},\n{t:58.320, text:'I\\'m not sure about the video. Then what about a tie?'},\n{t:63.141, text:'Oh yes, he\\'d like that. Fine.'},\n{t:65.847, text:'That only leaves you poor. What would you like for Christmas?'},\n{t:70.231, text:'Well, I\\'d like to go out for dinner one day.'},\n{t:81.513, text:'Okay, we can do that. Now listen again.'},\n{t:83.899, text:'Cool. As I\\'m visiting your family at Christmas, I\\'d like to take them some presents.'},\n{t:90.171, text:'What do you suggest? Oh, that\\'s a good idea.'},\n{t:93.839, text:'Well, let\\'s start with my brothers, Kevin likes'},\n{t:98.160, text:'reading, so buy him a book, and John really'},\n{t:102.025, text:'likes sports, so something to do with football'},\n{t:106.520, text:'might be about a football shirt. Fine.'},\n{t:109.834, text:'Then there\\'s Anne. She loves the theatre, so you could'},\n{t:114.521, text:'get her some tickets to a show. Alright.'},\n{t:117.695, text:'Now, what about your parents? What are they interested'},\n{t:121.961, text:'in? Well, my mother likes classical music,'},\n{t:125.417, text:'but my father just likes watching television.'},\n{t:129.950, text:'So I can get her a cassette and in the video.'},\n{t:134.105, text:'The cassette\\'s a good idea. I\\'m not sure'},\n{t:138.080, text:'about the video. Then what about a tie? Oh yes, he\\'d like that. Fine. That only leaves'},\n{t:146.081, text:'you poor. What would you like for Christmas?'},\n{t:149.410, text:'Well, I\\'d like to go out for dinner one day.'},\n{t:152.741, text:'Okay, we can do that.'},\n","rawQuestions":"[VOCAB]\nshirt | football shirt\ntheatre tickets | tickets to a show\ncassette | get her a cassette\ntie | what about a tie\nmeal | go out for dinner\n[/VOCAB]\n\nListen to Teresa talking to Paul about presents for his family.\nWhat is she going to buy for each person?\nFor questions 6-10, write a letter A-H next to each person.\nYou will hear the conversation twice.\nPRESENTS\nA   book\nB   cassette\nC   football\nD   meal\nE   shirt\nF   theatre tickets\nG   tie\nH   video\nPEOPLE\n6 Jon ___ [play:22.269]\n7 Ann ___ [play:30.887]\n8 Mother ___ [play:41.694]\n9 Father ___ [play:45.638]\n10 Paul ___ [play:65.847]\n"},{"name":"EXERCISE 9","audio":"https://englishpracticetest.net/wp-content/uploads/2022/11/a2-test-4-04.mp3","image":"","hideTrans":false,"removeDragged":false,"imgLeft":false,"answerKey":{"input-auto-0":"brakes/the brakes","input-auto-1":"Hill","input-auto-2":"350519","input-auto-3":"2.00 / 14.00 / two o’clock / 2 p.m","input-auto-4":"red"},"itemImages":{},"processedTranscript":"\u003cp data-time=\"9.660\">I\\'m having some trouble with my car.\u003c/p>\n\u003cp data-time=\"17.710\">Can you come to have a look at it?\u003c/p>\n\u003cp data-time=\"20.001\">Can I have your name, please, Miss?\u003c/p>\n\u003cp data-time=\"22.001\">Yes.\u003c/p>\n\u003cp data-time=\"23.150\">My name\\'s Mary Wilson.\u003c/p>\n\u003cp data-time=\"26.150\">Now, what\\'s the trouble?\u003c/p>\n\u003cp data-time=\"28.250\">It\\'s the breaks.\u003c/p>\n\u003cp data-time=\"30.300\">When I was driving to work this morning,\u003c/p>\n\u003cp data-time=\"33.149\">they weren\\'t working very well.\u003c/p>\n\u003cp data-time=\"35.001\">Oh dear.\u003c/p>\n\u003cp data-time=\"36.449\">Don\\'t worry, we\\'ll come and repair them.\u003c/p>\n\u003cp data-time=\"39.001\">Thank you.\u003c/p>\n\u003cp data-time=\"40.149\">Can you tell me you\\'re a dress, please?\u003c/p>\n\u003cp data-time=\"42.599\">Well, I\\'m at my office.\u003c/p>\n\u003cp data-time=\"45.449\">It\\'s at 31 Hill Road.\u003c/p>\n\u003cp data-time=\"50.099\">The cars parked outside the office.\u003c/p>\n\u003cp data-time=\"53.199\">Could we also have your office phone number?\u003c/p>\n\u003cp data-time=\"56.549\">Yes, it\\'s 350519.\u003c/p>\n\u003cp data-time=\"63.599\">Can you come this morning?\u003c/p>\n\u003cp data-time=\"65.449\">I\\'m afraid we can\\'t.\u003c/p>\n\u003cp data-time=\"67.349\">We\\'re very busy until lunchtime.\u003c/p>\n\u003cp data-time=\"70.000\">It\\'s very important.\u003c/p>\n\u003cp data-time=\"72.149\">I really need my car tonight.\u003c/p>\n\u003cp data-time=\"75.299\">How soon can you come?\u003c/p>\n\u003cp data-time=\"77.499\">Well, we can come and say 2 p.m.\u003c/p>\n\u003cp data-time=\"82.549\">Okay, thank you.\u003c/p>\n\u003cp data-time=\"84.001\">And what type of car is it?\u003c/p>\n\u003cp data-time=\"87.299\">It\\'s a red Toyota.\u003c/p>\n\u003cp data-time=\"89.050\">Okay.\u003c/p>\n\u003cp data-time=\"90.349\">See you this afternoon.\u003c/p>\n\u003cp data-time=\"92.001\">Great.\u003c/p>\n\u003cp data-time=\"93.001\">Thank you.\u003c/p>\n\u003cp data-time=\"94.001\">Bye.\u003c/p>\n\u003cp data-time=\"100.824\">Now listen again.\u003c/p>\n\u003cp data-time=\"104.001\">Good morning, Jackson\\'s garage.\u003c/p>\n\u003cp data-time=\"106.001\">Can I help you?\u003c/p>\n\u003cp data-time=\"107.399\">Yes, please.\u003c/p>\n\u003cp data-time=\"109.001\">I\\'m having some trouble with my car.\u003c/p>\n\u003cp data-time=\"112.001\">Can you come to have a look at it?\u003c/p>\n\u003cp data-time=\"114.124\">Can I have your name, please, Miss?\u003c/p>\n\u003cp data-time=\"116.001\">Yes.\u003c/p>\n\u003cp data-time=\"117.299\">My name\\'s Mary Wilson.\u003c/p>\n\u003cp data-time=\"120.299\">Now, what\\'s the trouble?\u003c/p>\n\u003cp data-time=\"122.399\">It\\'s the brakes.\u003c/p>\n\u003cp data-time=\"124.449\">When I was driving to work this morning,\u003c/p>\n\u003cp data-time=\"127.249\">they weren\\'t working very well.\u003c/p>\n\u003cp data-time=\"129.001\">Oh dear.\u003c/p>\n\u003cp data-time=\"130.050\">Don\\'t worry.\u003c/p>\n\u003cp data-time=\"131.250\">We\\'ll come and repair them.\u003c/p>\n\u003cp data-time=\"133.001\">Thank you.\u003c/p>\n\u003cp data-time=\"134.250\">Can you tell me you\\'re a dress, please?\u003c/p>\n\u003cp data-time=\"136.650\">Well, I\\'m at my office.\u003c/p>\n\u003cp data-time=\"139.550\">It\\'s at 31 Hill Road.\u003c/p>\n\u003cp data-time=\"144.200\">The cars parked outside the office.\u003c/p>\n\u003cp data-time=\"147.275\">Could we also have your office phone number?\u003c/p>\n\u003cp data-time=\"150.650\">Yes.\u003c/p>\n\u003cp data-time=\"152.550\">It\\'s 350519.\u003c/p>\n\u003cp data-time=\"157.650\">Can you come this morning?\u003c/p>\n\u003cp data-time=\"159.450\">I\\'m afraid we can\\'t.\u003c/p>\n\u003cp data-time=\"161.350\">We\\'re very busy until lunchtime.\u003c/p>\n\u003cp data-time=\"164.050\">It\\'s very important.\u003c/p>\n\u003cp data-time=\"166.175\">I really need my car tonight.\u003c/p>\n\u003cp data-time=\"169.350\">How soon can you come?\u003c/p>\n\u003cp data-time=\"171.500\">Well, we can come and say 2 p.m.\u003c/p>\n\u003cp data-time=\"176.001\">Okay.\u003c/p>\n\u003cp data-time=\"177.001\">Thank you.\u003c/p>\n\u003cp data-time=\"179.001\">And what type of car is it?\u003c/p>\n\u003cp data-time=\"181.300\">It\\'s a red Toyota.\u003c/p>\n\u003cp data-time=\"183.100\">Okay.\u003c/p>\n\u003cp data-time=\"184.350\">See you this afternoon.\u003c/p>\n\u003cp data-time=\"186.001\">Great.\u003c/p>\n\u003cp data-time=\"187.001\">Thank you.\u003c/p>\n\u003cp data-time=\"188.001\">Bye.\u003c/p>\n","processedQuestions":"\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">Questions 16-20\u003c/h3>\u003cp class=\"mb-2 text-gray-600 text-sm\">You will hear a woman telephoning a garage about her car.\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">Listen and complete questions 16-20.\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">You will hear the conversation twice.\u003c/p>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">Jackson’s Garage\u003c/h3>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">Customer’s name: Mary Wilson\u003c/h3>\u003cdiv id=\"q-auto-0\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Trouble with car:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">16\u003c/span>\u003cinput type=\"text\" id=\"input-auto-0\" class=\"mx-1 inline-block align-middle\"> \u003cspan class=\"play-here-btn\" data-time=\"26.150\" onclick=\"playAudioFrom(26.150)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-1\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Office address: 31\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">17\u003c/span>\u003cinput type=\"text\" id=\"input-auto-1\" class=\"mx-1 inline-block align-middle\"> Road \u003cspan class=\"play-here-btn\" data-time=\"45.449\" onclick=\"playAudioFrom(45.449)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-2\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Customer’s phone number:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">18\u003c/span>\u003cinput type=\"text\" id=\"input-auto-2\" class=\"mx-1 inline-block align-middle\"> \u003cspan class=\"play-here-btn\" data-time=\"53.199\" onclick=\"playAudioFrom(53.199)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-3\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Time of appointment:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">19\u003c/span>\u003cinput type=\"text\" id=\"input-auto-3\" class=\"mx-1 inline-block align-middle\"> \u003cspan class=\"play-here-btn\" data-time=\"77.499\" onclick=\"playAudioFrom(77.499)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-4\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Colour of car:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">20\u003c/span>\u003cinput type=\"text\" id=\"input-auto-4\" class=\"mx-1 inline-block align-middle\"> \u003cspan class=\"play-here-btn\" data-time=\"87.299\" onclick=\"playAudioFrom(87.299)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>","totalQs":5,"rawTranscript":"{t:9.660, text:'I\\'m having some trouble with my car.'},\n{t:17.710, text:'Can you come to have a look at it?'},\n{t:20.001, text:'Can I have your name, please, Miss?'},\n{t:22.001, text:'Yes.'},\n{t:23.150, text:'My name\\'s Mary Wilson.'},\n{t:26.150, text:'Now, what\\'s the trouble?'},\n{t:28.250, text:'It\\'s the breaks.'},\n{t:30.300, text:'When I was driving to work this morning,'},\n{t:33.149, text:'they weren\\'t working very well.'},\n{t:35.001, text:'Oh dear.'},\n{t:36.449, text:'Don\\'t worry, we\\'ll come and repair them.'},\n{t:39.001, text:'Thank you.'},\n{t:40.149, text:'Can you tell me you\\'re a dress, please?'},\n{t:42.599, text:'Well, I\\'m at my office.'},\n{t:45.449, text:'It\\'s at 31 Hill Road.'},\n{t:50.099, text:'The cars parked outside the office.'},\n{t:53.199, text:'Could we also have your office phone number?'},\n{t:56.549, text:'Yes, it\\'s 350519.'},\n{t:63.599, text:'Can you come this morning?'},\n{t:65.449, text:'I\\'m afraid we can\\'t.'},\n{t:67.349, text:'We\\'re very busy until lunchtime.'},\n{t:70.000, text:'It\\'s very important.'},\n{t:72.149, text:'I really need my car tonight.'},\n{t:75.299, text:'How soon can you come?'},\n{t:77.499, text:'Well, we can come and say 2 p.m.'},\n{t:82.549, text:'Okay, thank you.'},\n{t:84.001, text:'And what type of car is it?'},\n{t:87.299, text:'It\\'s a red Toyota.'},\n{t:89.050, text:'Okay.'},\n{t:90.349, text:'See you this afternoon.'},\n{t:92.001, text:'Great.'},\n{t:93.001, text:'Thank you.'},\n{t:94.001, text:'Bye.'},\n{t:100.824, text:'Now listen again.'},\n{t:104.001, text:'Good morning, Jackson\\'s garage.'},\n{t:106.001, text:'Can I help you?'},\n{t:107.399, text:'Yes, please.'},\n{t:109.001, text:'I\\'m having some trouble with my car.'},\n{t:112.001, text:'Can you come to have a look at it?'},\n{t:114.124, text:'Can I have your name, please, Miss?'},\n{t:116.001, text:'Yes.'},\n{t:117.299, text:'My name\\'s Mary Wilson.'},\n{t:120.299, text:'Now, what\\'s the trouble?'},\n{t:122.399, text:'It\\'s the brakes.'},\n{t:124.449, text:'When I was driving to work this morning,'},\n{t:127.249, text:'they weren\\'t working very well.'},\n{t:129.001, text:'Oh dear.'},\n{t:130.050, text:'Don\\'t worry.'},\n{t:131.250, text:'We\\'ll come and repair them.'},\n{t:133.001, text:'Thank you.'},\n{t:134.250, text:'Can you tell me you\\'re a dress, please?'},\n{t:136.650, text:'Well, I\\'m at my office.'},\n{t:139.550, text:'It\\'s at 31 Hill Road.'},\n{t:144.200, text:'The cars parked outside the office.'},\n{t:147.275, text:'Could we also have your office phone number?'},\n{t:150.650, text:'Yes.'},\n{t:152.550, text:'It\\'s 350519.'},\n{t:157.650, text:'Can you come this morning?'},\n{t:159.450, text:'I\\'m afraid we can\\'t.'},\n{t:161.350, text:'We\\'re very busy until lunchtime.'},\n{t:164.050, text:'It\\'s very important.'},\n{t:166.175, text:'I really need my car tonight.'},\n{t:169.350, text:'How soon can you come?'},\n{t:171.500, text:'Well, we can come and say 2 p.m.'},\n{t:176.001, text:'Okay.'},\n{t:177.001, text:'Thank you.'},\n{t:179.001, text:'And what type of car is it?'},\n{t:181.300, text:'It\\'s a red Toyota.'},\n{t:183.100, text:'Okay.'},\n{t:184.350, text:'See you this afternoon.'},\n{t:186.001, text:'Great.'},\n{t:187.001, text:'Thank you.'},\n{t:188.001, text:'Bye.'},\n","rawQuestions":"Questions 16-20\nYou will hear a woman telephoning a garage about her car.\nListen and complete questions 16-20.\nYou will hear the conversation twice.\nJackson’s Garage\nCustomer’s name: Mary Wilson\nTrouble with car: 16 _______________ [play:26.150]\nOffice address: 31 17 _______________ Road [play:45.449]\nCustomer’s phone number: 18 _______________ [play:53.199]\nTime of appointment: 19 _______________ [play:77.499]\nColour of car: 20 _______________ [play:87.299]\n\n"},{"name":"EXERCISE 10","audio":"https://englishpracticetest.net/wp-content/uploads/2022/11/a2-test-4-05.mp3","image":"","hideTrans":false,"removeDragged":false,"imgLeft":false,"answerKey":{"input-auto-0":"Craig","input-auto-1":"Park","input-auto-2":"1984","input-auto-3":"1990","input-auto-4":"587634"},"itemImages":{},"processedTranscript":"\u003cp data-time=\"5.099\">And now, in this part of the program, we try\u003c/p>\n\u003cp data-time=\"8.473\">to put people in contact with their old school friends.\u003c/p>\n\u003cp data-time=\"13.150\">So, if you remember any of these people, and you\u003c/p>\n\u003cp data-time=\"17.357\">want to see them again, then listen carefully.\u003c/p>\n\u003cp data-time=\"28.240\">Right, now the first person this morning is Janet Craig, that\\'s spelled C-R-A-I-G.\u003c/p>\n\u003cp data-time=\"35.641\">And I\\'ll give you her telephone number in a minute or so.\u003c/p>\n\u003cp data-time=\"41.429\">Janet said she was at Green Park School in\u003c/p>\n\u003cp data-time=\"45.134\">South London for six happy years, and she wants to meet all her old friends again.\u003c/p>\n\u003cp data-time=\"53.520\">She started at the school in 1984, and she was\u003c/p>\n\u003cp data-time=\"57.462\">very sorry when she left to get a job in 1990.\u003c/p>\n\u003cp data-time=\"64.400\">So, if you were at Green Park School between those dates, then please phone Janet.\u003c/p>\n\u003cp data-time=\"80.480\">She\\'s waiting to hear from you, and her number is 587-634.\u003c/p>\n\u003cp data-time=\"88.481\">I\\'m sure you\\'ll have lots to talk about.\u003c/p>\n\u003cp data-time=\"96.281\">Now listen again.\u003c/p>\n\u003cp data-time=\"99.201\">Now, in this part of the program, we try to put\u003c/p>\n\u003cp data-time=\"102.667\">people in contact with their old school friends.\u003c/p>\n\u003cp data-time=\"106.999\">So, if you remember any of these people, and you\u003c/p>\n\u003cp data-time=\"110.691\">want to see them again, then listen carefully.\u003c/p>\n\u003cp data-time=\"120.479\">Right, now the first person this morning is Janet Craig, that\\'s spelled C-R-A-I-G.\u003c/p>\n\u003cp data-time=\"129.180\">And I\\'ll give you her telephone number in a minute or so.\u003c/p>\n\u003cp data-time=\"135.230\">Janet said she was at Green Park School in\u003c/p>\n\u003cp data-time=\"138.934\">South London for six happy years, and she wants to meet all her old friends again.\u003c/p>\n\u003cp data-time=\"147.240\">She started at the school in 1984, and she was\u003c/p>\n\u003cp data-time=\"151.247\">very sorry when she left to get a job in 1990.\u003c/p>\n\u003cp data-time=\"157.810\">So, if you were at Green Park School between those dates, then please phone Janet.\u003c/p>\n\u003cp data-time=\"173.760\">She\\'s waiting to hear from you, and her number is 587-634, that\\'s 587-634.\u003c/p>\n\u003cp data-time=\"181.761\">I\\'m sure you\\'ll have lots to talk about.\u003c/p>\n","processedQuestions":"\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">Questions 21-25\u003c/h3>\u003cp class=\"mb-2 text-gray-600 text-sm\">You will hear a man talking on the radio.\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">Listen and complete questions 21-25.\u003c/p>\u003cp class=\"mb-2 text-gray-600 text-sm\">You will hear the information twice.\u003c/p>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">Old School Friends\u003c/h3>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">Please contact:\u003c/h3>\u003ch3 class=\"font-bold text-gray-700 mt-4 mb-2 uppercase text-xs border-b pb-1\">First name: Janet\u003c/h3>\u003cdiv id=\"q-auto-0\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Last name:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">21\u003c/span>\u003cinput type=\"text\" id=\"input-auto-0\" class=\"mx-1 inline-block align-middle\">\u003cspan class=\"play-here-btn\" data-time=\"28.240\" onclick=\"playAudioFrom(28.240)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-1\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Name of school: Green\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">22\u003c/span>\u003cinput type=\"text\" id=\"input-auto-1\" class=\"mx-1 inline-block align-middle\"> School\u003cspan class=\"play-here-btn\" data-time=\"41.429\" onclick=\"playAudioFrom(41.429)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-2\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">From:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">23\u003c/span>\u003cinput type=\"text\" id=\"input-auto-2\" class=\"mx-1 inline-block align-middle\">\u003cspan class=\"play-here-btn\" data-time=\"53.520\" onclick=\"playAudioFrom(53.520)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-3\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">To:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">24\u003c/span>\u003cinput type=\"text\" id=\"input-auto-3\" class=\"mx-1 inline-block align-middle\">\u003cspan class=\"play-here-btn\" data-time=\"57.462\" onclick=\"playAudioFrom(57.462)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>\u003cdiv id=\"q-auto-4\" class=\"question-block mb-3 p-2 relative\">\u003cdiv class=\"flex-1 leading-relaxed\">Telephone number:\u003cspan class=\"bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[11px] font-bold mx-1 shadow-sm border border-blue-200 inline-block align-middle\">25\u003c/span>\u003cinput type=\"text\" id=\"input-auto-4\" class=\"mx-1 inline-block align-middle\">\u003cspan class=\"play-here-btn\" data-time=\"80.480\" onclick=\"playAudioFrom(80.480)\" title=\"Phát audio tại đây\">\u003ci class=\"fa-solid fa-play text-[10px]\">\u003c/i>\u003c/span>\u003c/div>\u003c/div>","totalQs":5,"rawTranscript":"{t:5.099, text:'And now, in this part of the program, we try'},\n{t:8.473, text:'to put people in contact with their old school friends.'},\n{t:13.150, text:'So, if you remember any of these people, and you'},\n{t:17.357, text:'want to see them again, then listen carefully.'},\n{t:28.240, text:'Right, now the first person this morning is Janet Craig, that\\'s spelled C-R-A-I-G.'},\n{t:35.641, text:'And I\\'ll give you her telephone number in a minute or so.'},\n{t:41.429, text:'Janet said she was at Green Park School in'},\n{t:45.134, text:'South London for six happy years, and she wants to meet all her old friends again.'},\n{t:53.520, text:'She started at the school in 1984, and she was'},\n{t:57.462, text:'very sorry when she left to get a job in 1990.'},\n{t:64.400, text:'So, if you were at Green Park School between those dates, then please phone Janet.'},\n{t:80.480, text:'She\\'s waiting to hear from you, and her number is 587-634.'},\n{t:88.481, text:'I\\'m sure you\\'ll have lots to talk about.'},\n{t:96.281, text:'Now listen again.'},\n{t:99.201, text:'Now, in this part of the program, we try to put'},\n{t:102.667, text:'people in contact with their old school friends.'},\n{t:106.999, text:'So, if you remember any of these people, and you'},\n{t:110.691, text:'want to see them again, then listen carefully.'},\n{t:120.479, text:'Right, now the first person this morning is Janet Craig, that\\'s spelled C-R-A-I-G.'},\n{t:129.180, text:'And I\\'ll give you her telephone number in a minute or so.'},\n{t:135.230, text:'Janet said she was at Green Park School in'},\n{t:138.934, text:'South London for six happy years, and she wants to meet all her old friends again.'},\n{t:147.240, text:'She started at the school in 1984, and she was'},\n{t:151.247, text:'very sorry when she left to get a job in 1990.'},\n{t:157.810, text:'So, if you were at Green Park School between those dates, then please phone Janet.'},\n{t:173.760, text:'She\\'s waiting to hear from you, and her number is 587-634, that\\'s 587-634.'},\n{t:181.761, text:'I\\'m sure you\\'ll have lots to talk about.'},\n","rawQuestions":"Questions 21-25\nYou will hear a man talking on the radio.\nListen and complete questions 21-25.\nYou will hear the information twice.\nOld School Friends\nPlease contact:\nFirst name: Janet\nLast name: 21 _______________[play:28.240]\n\nName of school: Green 22 _______________ School[play:41.429]\n\nFrom: 23 _______________[play:53.520]\n\nTo: 24 _______________[play:57.462]\n\nTelephone number: 25 _______________[play:80.480]"}];
+        let currentLessonIndex = 0;
+        let timerInterval; let seconds = 0;
+        let activePara = null;
+
+        function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
+        function dragLeave(ev) { ev.currentTarget.classList.remove('drag-over'); }
+        
+        function drag(ev) { 
+            const val = ev.target.dataset.val || ev.target.innerText.split('.')[0].trim();
+            ev.dataTransfer.setData("text", val); 
+            ev.dataTransfer.setData("sourceId", ev.target.id);
+        }
+        
+        function drop(ev) { 
+            ev.preventDefault(); 
+            ev.currentTarget.classList.remove('drag-over'); 
+            const data = ev.dataTransfer.getData("text"); 
+            const sourceId = ev.dataTransfer.getData("sourceId");
+            const lesson = lessonsData[currentLessonIndex];
+            
+            // Nhận diện xem đây có phải là Option của dạng Vocab hay không
+            const isVocab = sourceId && sourceId.includes('drag-vocab');
+
+            // Hoàn trả lại item cũ nếu drop-zone đã có item
+            if ((lesson.removeDragged || isVocab) && ev.currentTarget.dataset.sourceId) {
+                const oldSource = document.getElementById(ev.currentTarget.dataset.sourceId);
+                if(oldSource) {
+                    oldSource.classList.remove('used');
+                    oldSource.style.display = ''; // Hiện lại nếu bị ẩn
+                }
+            }
+
+            ev.currentTarget.innerHTML = `<span class="dropped-item">${data}</span>`; 
+            ev.currentTarget.dataset.value = data.split('.')[0].trim(); 
+            ev.currentTarget.dataset.sourceId = sourceId;
+
+            // Xử lý biến mất/làm mờ item mới kéo vào
+            if ((lesson.removeDragged || isVocab) && sourceId) {
+                const sourceEl = document.getElementById(sourceId);
+                if(sourceEl) {
+                    if (isVocab) {
+                        sourceEl.style.display = 'none'; // Biến mất HOÀN TOÀN với phần Vocab
+                    } else {
+                        sourceEl.classList.add('used'); // Chỉ làm mờ, gạch ngang với dạng kéo thả khác
+                    }
+                }
+            }
+            updatePaletteState();
+        }
+
+        // Xử lý Click vào Drop Zone để trả item về danh sách gốc
+        function handleDropZoneClick(ev) {
+            const lesson = lessonsData[currentLessonIndex];
+            const dz = ev.currentTarget;
+            const sourceId = dz.dataset.sourceId;
+            const isVocab = sourceId && sourceId.includes('drag-vocab');
+
+            // Nếu không phải vocab và cũng không tick checkbox "Ẩn Opt Đã Kéo" thì bỏ qua
+            if (!lesson.removeDragged && !isVocab) return;
+            
+            if (sourceId) {
+                const sourceEl = document.getElementById(sourceId);
+                if (sourceEl) {
+                    sourceEl.classList.remove('used');
+                    sourceEl.style.display = ''; // Phục hồi hiển thị cho item
+                }
+                dz.innerHTML = '';
+                dz.dataset.value = '';
+                dz.dataset.sourceId = '';
+            }
+            updatePaletteState();
+        }
+		
+		window.checkVocabMatching = function(btn) {
+            const block = btn.closest('.vocab-block');
+            if (!block) return;
+            
+            const dropZones = block.querySelectorAll('.drop-zone');
+            
+            let correct = 0;
+            let total = dropZones.length;
+            
+            // Xóa các nút show key và thông báo cũ nếu học sinh bấm check nhiều lần
+            block.querySelectorAll('.vocab-show-key-btn, .correct-feedback').forEach(e => e.remove());
+            
+            dropZones.forEach(el => {
+                el.classList.remove('correct-answer', 'incorrect-answer');
+                
+                // Lấy đáp án đúng đã được gài sẵn
+                const correctVal = (el.dataset.answer || "").trim().toLowerCase();
+                let userVal = (el.dataset.value || "").trim().toLowerCase();
+                
+                if (userVal === correctVal && userVal !== "") {
+                    correct++;
+                    el.classList.add('correct-answer');
+                } else {
+                    el.classList.add('incorrect-answer');
+                    
+                    // Thêm nút Show Key bên cạnh ô làm sai
+                    if(correctVal) {
+                        const showKeyBtn = document.createElement('button');
+                        showKeyBtn.className = 'vocab-show-key-btn ml-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-[10px] px-2 py-1 rounded font-bold transition inline-block align-middle shadow-sm border border-gray-300';
+                        showKeyBtn.innerHTML = '<i class="fa-solid fa-key"></i> Show Key';
+                        showKeyBtn.onclick = function() {
+                            const div = document.createElement('div');
+                            div.className = 'correct-feedback mt-1';
+                            div.innerText = `Key: ${el.dataset.answer}`;
+                            el.after(div);
+                            this.remove(); // Ẩn nút đi sau khi đã show
+                        };
+                        el.after(showKeyBtn);
+                    }
+                }
+            });
+            
+            // Hiển thị điểm số phần Vocab
+            const feedback = block.querySelector('.vocab-feedback');
+            if (feedback) {
+                feedback.innerText = `Kết quả Vocab: ${correct}/${total} câu chính xác`;
+                feedback.classList.remove('hidden');
+            }
+        };
+
+        // Thay thế hàm switchLesson cũ bằng hàm mới này
+        // Hàm chụp ảnh trạng thái bài làm
+        window.saveCurrentStateToMemory = () => {
+            if (currentLessonIndex === undefined || currentLessonIndex === null || !lessonsData[currentLessonIndex]) return;
+
+            // Đồng bộ value cho input text và gap-fill
+            document.querySelectorAll('#questions-content input[type="text"]').forEach(el => {
+                el.setAttribute('value', el.value || '');
+            });
+            // Đồng bộ trạng thái checked cho trắc nghiệm (radio/checkbox)
+            document.querySelectorAll('#questions-content input[type="checkbox"], #questions-content input[type="radio"]').forEach(el => {
+                if(el.checked) el.setAttribute('checked', 'checked');
+                else el.removeAttribute('checked');
+            });
+
+            const qContent = document.getElementById('questions-content');
+            if (qContent && qContent.innerHTML.trim() !== '') {
+                lessonsData[currentLessonIndex].savedDOM = {
+                    questions: qContent.innerHTML,
+                    timer: seconds, // Lưu lại số giây đã đếm
+                    resultMessage: document.getElementById('result-message').innerHTML,
+                    resultMessageHidden: document.getElementById('result-message').classList.contains('hidden')
+                };
+            }
+        };
+
+        // Thay thế hàm switchLesson cũ bằng hàm mới này
+        function switchLesson(index) {
+            // 1. Lưu bài cũ trước khi chuyển đi (ngăn lưu nhầm mảng rỗng khi ở sảnh chờ)
+            const qContent = document.getElementById('questions-content');
+            if (typeof saveCurrentStateToMemory === 'function' && qContent && qContent.innerHTML.trim() !== '' && !document.body.classList.contains('in-dashboard')) {
+                saveCurrentStateToMemory();
+            }
+
+            currentLessonIndex = parseInt(index);
+            const lesson = lessonsData[currentLessonIndex];
+            
+            // 2. Render lại Audio, Transcript và cấu trúc cột
+            renderLesson(lesson);
+            const qsLabel = document.getElementById('top-total-qs');
+            if(qsLabel) qsLabel.innerText = (lesson.totalQs || 0) + ' câu';
+            
+            // 3. KIỂM TRA: Phục hồi trạng thái câu hỏi & đáp án nếu đã lưu
+            if (lesson.savedDOM) {
+                // Đắp lại HTML các đáp án đã điền/kéo thả
+                document.getElementById('questions-content').innerHTML = lesson.savedDOM.questions;
+                
+                // Khôi phục khung kết quả Xanh/Đỏ
+                const msg = document.getElementById('result-message');
+                msg.innerHTML = lesson.savedDOM.resultMessage;
+                if(lesson.savedDOM.resultMessageHidden) msg.classList.add('hidden');
+                else msg.classList.remove('hidden');
+
+                // Khôi phục đồng hồ tính giờ
+                if(timerInterval) clearInterval(timerInterval);
+                seconds = lesson.savedDOM.timer || 0;
+                timerInterval = setInterval(() => {
+                    seconds++;
+                    const m = Math.floor(seconds/60).toString().padStart(2, '0');
+                    const s = (seconds%60).toString().padStart(2, '0');
+                    document.getElementById('timer').innerText = `${m}:${s}`;
+                }, 1000);
+            } else {
+                // Chưa có dữ liệu lưu thì tạo mới từ đầu
+                resetState();
+            }
+			// Đồng bộ lại nút Nộp Bài trên Header theo trạng thái của bài hiện tại
+    const btn = document.querySelector('button[onclick="checkResults()"]');
+    if (btn) {
+        if (lesson.submitAttempt === 2 && !lesson.lastResult) {
+            btn.innerHTML = '<i class="fa-solid fa-rotate-right mr-1"></i> Nộp Lần 2';
+            btn.className = 'bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold px-4 py-1.5 rounded shadow transition';
+            btn.disabled = false;
+        } else if (lesson.lastResult) {
+            btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Đã Nộp';
+            btn.className = 'bg-gray-500 text-white text-sm font-bold px-4 py-1.5 rounded shadow cursor-not-allowed opacity-70';
+            btn.disabled = true;
+        } else {
+            btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Nộp Bài';
+            btn.className = 'bg-green-600 hover:bg-green-700 text-white text-sm font-bold px-4 py-1.5 rounded shadow transition';
+            btn.disabled = false;
+        }
+    }
+	buildPalette(lesson);
+    const bottomActions = document.getElementById('bottom-actions');
+    const btnNext = document.getElementById('btn-next-lesson');
+    if(lesson.lastResult || lesson.submitAttempt >= 2) {
+        bottomActions.classList.remove('hidden');
+        
+        const filterVal = document.querySelector('input[name="lesson_filter"]:checked').value;
+        if (filterVal === 'ALL') {
+            if (currentTestSequence.length > 0) {
+                btnNext.classList.remove('hidden');
+                let currentIndex = currentTestSequence.indexOf(currentLessonIndex);
+                if (currentIndex < currentTestSequence.length - 1) {
+                    btnNext.innerText = `Bài tiếp theo (Phím ➔) ❯❯`;
+                } else {
+                    btnNext.innerText = `Nộp & Xem Report ❯❯`;
+                }
+            } else {
+                btnNext.classList.add('hidden');
+            }
+        } else {
+            if (filteredIndexes.length > 1) {
+                btnNext.classList.remove('hidden');
+                btnNext.innerText = `Bài ngẫu nhiên tiếp theo (Phím ➔) ❯❯`;
+            } else btnNext.classList.add('hidden');
+        }
+    } else {
+        bottomActions.classList.add('hidden');
+    }
+        }
+
+        function renderLesson(lesson) {
+            const audio = document.getElementById('audio');
+            audio.src = lesson.audio;
+            document.getElementById('transcript').innerHTML = lesson.processedTranscript;
+            document.getElementById('questions-content').innerHTML = lesson.processedQuestions;
+
+            const transWrap = document.getElementById('transcript-container');
+            const transPlace = document.getElementById('transcript-placeholder');
+            document.getElementById('trans-btn-container').innerHTML = `<span class="text-xs text-slate-400"><i class="fa-solid fa-music mr-1"></i>Audio Source</span>
+                <button onclick="toggleTrans()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded text-xs transition border border-slate-500">${lesson.hideTrans ? 'Hiện Văn Bản' : 'Ẩn Văn Bản'}</button>`;
+            
+            if (lesson.hideTrans) { transWrap.classList.add('hidden'); transPlace.classList.remove('hidden'); }
+            else { transWrap.classList.remove('hidden'); transPlace.classList.add('hidden'); }
+			
+            const paneTrans = document.getElementById('pane-transcript');
+            const paneQuest = document.getElementById('pane-questions');
+            const resizer1 = document.getElementById('resizer-1');
+
+            paneTrans.style.width = '';                 
+            paneQuest.style.width = '';
+            
+            const questContentWrap = paneQuest.querySelector('.max-w-full');
+            if(questContentWrap) {
+                questContentWrap.classList.remove('max-w-full', 'w-full');
+                questContentWrap.classList.add('max-w-3xl');
+            }
+            document.getElementById('questions-content').classList.remove('text-lg');
+
+            attachAudioListeners();
+            setTimeout(initResize, 100);
+        }
+
+        function toggleTrans() {
+            document.getElementById('transcript-container').classList.toggle('hidden');
+            document.getElementById('transcript-placeholder').classList.toggle('hidden');
+        }
+
+        function resetState() {
+            document.getElementById('result-message').classList.add('hidden');
+            seconds = 0; if(timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                seconds++;
+                const m = Math.floor(seconds/60).toString().padStart(2, '0');
+                const s = (seconds%60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${m}:${s}`;
+            }, 1000);
+        }
+
+        function attachAudioListeners() {
+            const audio = document.getElementById('audio');
+            const paras = document.querySelectorAll('#transcript p');
+            activePara = null;
+            
+            // --- LOGIC MỚI: Thu thập thời gian của tất cả các nút Play ---
+            const playBtns = document.querySelectorAll('.play-here-btn');
+            let qTimings = [];
+            playBtns.forEach(btn => {
+                const time = parseFloat(btn.dataset.time);
+                if (!isNaN(time)) qTimings.push({ btn, time });
+            });
+            // Sắp xếp các nút theo thứ tự thời gian từ bé đến lớn
+            qTimings.sort((a, b) => a.time - b.time);
+
+            audio.ontimeupdate = () => {
+                const time = audio.currentTime;
+                const alerts = document.querySelectorAll('.alert-trigger');
+                let current = null;
+                
+                paras.forEach(p => {
+                    const t = parseFloat(p.dataset.time);
+                    p.classList.remove('active');
+                    if (time >= t) current = p;
+                });
+
+                if (current) {
+                    current.classList.add('active');
+                    if (!document.getElementById('transcript-container').classList.contains('hidden')) {
+                        if (current !== activePara) current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    activePara = current;
+
+                    // Sparkles trigger
+                    current.querySelectorAll('.keyword-sparkle').forEach(sp => {
+                        sp.classList.remove('trigger');
+                        void sp.offsetWidth;
+                        sp.classList.add('trigger');
+                        const targetId = sp.dataset.targetInput;
+                        if (targetId) {
+                            const inputEl = document.getElementById(targetId);
+                            if (inputEl) {
+                                inputEl.classList.add('highlight-input');
+                                setTimeout(() => inputEl.classList.remove('highlight-input'), 2000);
+                            }
+                        }
+                    });
+                }
+                
+                // Alerts trigger
+                alerts.forEach(al => {
+                    let parentP = al.closest('p');
+                    if(!parentP) {
+                        let prev = al.previousElementSibling;
+                        while(prev && prev.tagName !== 'P') prev = prev.previousElementSibling;
+                        if(prev) parentP = prev;
+                    }
+                    if(parentP && parentP.dataset.time) {
+                        const t = parseFloat(parentP.dataset.time);
+                        if (time >= t && time < t + 1) {
+                            const targetId = al.dataset.targetQuestion;
+                            if (targetId) {
+                                const block = document.getElementById(targetId);
+                                if(block) { 
+                                    block.classList.add('highlight-block'); 
+                                    setTimeout(() => block.classList.remove('highlight-block'), 5000); 
+                                    block.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // --- LOGIC MỚI: Dò tìm và thả Dấu Tick Xanh & Chuông Chú Ý ---
+                for (let i = 0; i < qTimings.length; i++) {
+                    const currentQ = qTimings[i];
+                    const nextQ = qTimings[i+1];
+                    
+                    // 1. XỬ LÝ CHUÔNG BÁO CHÚ Ý (Nếu công tắc được bật)
+                    const bellToggle = document.getElementById('bell-toggle');
+                    if (bellToggle && bellToggle.checked) {
+                        // Kích hoạt khi qua mốc time một chút (0 - 1.5s để chặn sai số nếu học sinh tua nhanh)
+                        if (time >= currentQ.time && time < currentQ.time + 1.5) {
+                            if (!currentQ.bellRinging) {
+                                currentQ.bellRinging = true;
+                                const bell = document.createElement('span');
+                                bell.className = 'attention-bell';
+                                bell.innerHTML = '<i class="fa-solid fa-bell mr-1"></i> Chú ý';
+                                currentQ.btn.after(bell); // Thả chuông ngay cạnh nút Play
+                                
+                                // Tự động xóa chuông sau 3 giây
+                                setTimeout(() => {
+                                    if (bell.parentNode) bell.remove();
+                                }, 3000);
+                            }
+                        } else if (time < currentQ.time) {
+                            // Reset trạng thái nếu học sinh tua ngược audio về trước
+                            currentQ.bellRinging = false; 
+                        }
+                    }
+
+                    // 2. XỬ LÝ DẤU TICK HOÀN THÀNH
+                    let isDone = false;
+                    if (nextQ) {
+                        if (time >= nextQ.time) isDone = true;
+                    } else {
+                        if (time >= currentQ.time + 15 || audio.ended) isDone = true;
+                    }
+                    
+                    // Tìm dấu tick xanh an toàn (tránh đụng chạm element chuông)
+                    let tickEl = null;
+                    let sibling = currentQ.btn.nextElementSibling;
+                    while (sibling) {
+                        if (sibling.classList.contains('done-tick')) {
+                            tickEl = sibling; 
+                            break;
+                        }
+                        sibling = sibling.nextElementSibling;
+                    }
+                    
+                    if (isDone) {
+                        if (!tickEl) {
+                            const tick = document.createElement('i');
+                            tick.className = 'fa-solid fa-circle-check done-tick';
+                            tick.title = "Audio đã phát qua phần này";
+                            currentQ.btn.after(tick); 
+                        }
+                    } else {
+                        if (tickEl) tickEl.remove(); // Thu hồi nếu tua ngược
+                    }
+                }
+            };
+            
+            paras.forEach(p => { 
+                p.onclick = () => { 
+                    audio.currentTime = parseFloat(p.dataset.time); 
+                    audio.play(); 
+                }; 
+            });
+        }
+
+        function initResize() {
+           const mainContainer = document.getElementById('main-container');
+           if(!mainContainer || window.innerWidth < 768) return; 
+
+           const resizer1 = document.getElementById('resizer-1');
+           const paneTrans = document.getElementById('pane-transcript');
+           if(resizer1 && paneTrans) {
+               const newResizer1 = resizer1.cloneNode(true);
+               resizer1.parentNode.replaceChild(newResizer1, resizer1);
+               newResizer1.addEventListener('mousedown', function(e) {
+                   e.preventDefault(); newResizer1.classList.add('active'); document.body.style.cursor = 'col-resize';
+                   const startX = e.clientX; const startWidth = paneTrans.getBoundingClientRect().width; const containerWidth = mainContainer.getBoundingClientRect().width;
+                   function onMouseMove(e) { const dx = e.clientX - startX; let newWidth = ((startWidth + dx) / containerWidth) * 100; if(newWidth < 20) newWidth = 20; if(newWidth > 60) newWidth = 60; paneTrans.style.width = newWidth + '%'; }
+                   function onMouseUp() { newResizer1.classList.remove('active'); document.body.style.cursor = ''; document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); }
+                   document.addEventListener('mousemove', onMouseMove); document.addEventListener('mouseup', onMouseUp);
+               });
+           }
+        }
+        window.addEventListener('resize', initResize);
+
+        function checkResults() {
+    const lesson = lessonsData[currentLessonIndex];
+    const key = lesson.answerKey;
+    let score = 0; let total = 0;
+    if(Object.keys(key).length === 0) return alert("Chưa cài đặt đáp án.");
+
+    // Khởi tạo biến đếm số lần nộp bài (mặc định là 1)
+    if (!lesson.submitAttempt) lesson.submitAttempt = 1;
+
+    document.querySelectorAll('.correct-feedback').forEach(e => e.remove());
+    document.querySelectorAll('.correct-answer, .incorrect-answer, .correct-text').forEach(e => e.classList.remove('correct-answer', 'incorrect-answer', 'correct-text'));
+
+    for(const [id, val] of Object.entries(key)) {
+        const el = document.getElementById(id);
+        if(el && (el.tagName === 'INPUT' || el.classList.contains('drop-zone'))) {
+            total++;
+            let userVal = el.tagName === 'INPUT' ? el.value.trim().toLowerCase() : (el.dataset.value || "").trim().toLowerCase();
+            const options = val.split(/[,\/]/).map(s => s.trim().toLowerCase());
+            
+            if(options.includes(userVal)) {
+                score++; 
+                el.classList.add('correct-answer');
+            } else {
+                el.classList.add('incorrect-answer');
+                // CHỈ HIỆN ĐÁP ÁN NẾU LÀ LẦN NỘP THỨ 2
+                if (lesson.submitAttempt >= 2) {
+                    const div = document.createElement('div'); 
+                    div.className = 'correct-feedback'; 
+                    div.innerText = `Correct: ${val}`; 
+                    el.after(div);
+                }
+            }
+        } else {
+            const inputs = document.getElementsByName(id);
+            if(inputs.length > 0) {
+                const type = inputs[0].type;
+                if(type === 'radio') {
+                    total++;
+                    let selected = ""; 
+                    for(let i of inputs) if(i.checked) selected = i.value.toUpperCase();
+                    if(selected === val.toUpperCase()) { score++; }
+                    
+                    for(let i of inputs) {
+                        const char = i.value.toUpperCase();
+                        const target = i.closest('td') || i.parentElement;
+                        
+                        if (i.checked && char === val.toUpperCase()) {
+                            // Chọn đúng
+                            target.classList.add('correct-text');
+                        } else if (i.checked && char !== val.toUpperCase()) {
+                            // Chọn sai
+                            target.classList.add('incorrect-answer');
+                        } else if (!i.checked && char === val.toUpperCase()) {
+                            // Bỏ lỡ đáp án đúng -> CHỈ SHOW Ở LẦN 2
+                            if (lesson.submitAttempt >= 2) {
+                                target.classList.add('correct-text');
+                            }
+                        }
+                    }
+                } else if(type === 'checkbox') {
+                    const keyArr = val.toUpperCase().split(/[,\s/&]+/).filter(x=>x);
+                    total += keyArr.length;
+                    let correctCount = 0;
+                    
+                    for(let i of inputs) {
+                        const char = i.parentElement.innerText.trim().charAt(0).toUpperCase();
+                        if(i.checked) {
+                            if(keyArr.includes(char)) {
+                                correctCount++;
+                                i.parentElement.classList.add('correct-text');
+                            } else {
+                                i.parentElement.classList.add('incorrect-answer');
+                            }
+                        } else {
+                            // Bỏ lỡ đáp án đúng -> CHỈ SHOW Ở LẦN 2
+                            if(keyArr.includes(char) && lesson.submitAttempt >= 2) {
+                                i.parentElement.classList.add('correct-text');
+                            }
+                        }
+                    }
+                    score += correctCount;
+                }
+            }
+        }
+    }
+    
+    // Tùy biến Nút Submit & Cảnh báo dựa theo số lần nộp
+    const msg = document.getElementById('result-message');
+    const btn = document.querySelector('button[onclick="checkResults()"]');
+
+    if (lesson.submitAttempt === 1 && score < total) {
+        // Lần 1: Còn câu sai -> Cho làm lại
+        msg.innerText = `Bạn làm đúng ${score}/${total} câu. Hãy kiểm tra lại những câu sai (màu đỏ) và nộp bài lần nữa nhé!`;
+        msg.classList.remove('hidden');
+        
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-rotate-right mr-1"></i> Nộp Lần 2';
+            btn.className = 'bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold px-4 py-1.5 rounded shadow transition';
+        }
+        lesson.submitAttempt = 2; // Tăng mốc để lần bấm sau sẽ chốt sổ
+    } else {
+        // Lần 2 HOẶC Lần 1 đúng 100% -> Chốt sổ
+        msg.innerText = `Kết quả cuối cùng: ${score}/${total} câu đúng`;
+        msg.classList.remove('hidden');
+        
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Đã Nộp';
+            btn.className = 'bg-gray-500 text-white text-sm font-bold px-4 py-1.5 rounded shadow cursor-not-allowed opacity-70';
+            btn.disabled = true; // Khóa nút nộp
+        }
+        
+        // Lưu kết quả và dừng đồng hồ
+        if(window.timerInterval) clearInterval(window.timerInterval);
+        lessonsData[currentLessonIndex].lastResult = score + "/" + total;
+        // Bổ sung dữ liệu chi tiết cho Report
+        lessonsData[currentLessonIndex].scoreInfo = { correct: score, total: total };
+        lessonsData[currentLessonIndex].timeTaken = document.getElementById('timer').innerText;
+		
+		// --- THÊM CODE GỬI BÁO CÁO PART LẺ Ở ĐÂY ---
+        const filterVal = document.querySelector('input[name="lesson_filter"]:checked').value;
+        // Bắt buộc gửi báo cáo ngay nếu đang luyện Part lẻ HOẶC tự chọn 1 bài cụ thể (không phải chuỗi 4 bài)
+        if (filterVal !== 'ALL' || currentTestSequence.length === 0) {
+            let timeParts = document.getElementById('timer').innerText.split(':');
+            let timeSpent = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+            sendReportToSheet(score, total, timeSpent);
+        }
+        // ------------------------------------------
+        
+        // Chỉ lưu thời điểm lần đầu tiên chốt sổ để giữ nguyên lịch sử
+        if(!lessonsData[currentLessonIndex].dateCompleted) {
+            const now = new Date();
+            lessonsData[currentLessonIndex].dateCompleted = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()} ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+        }
+    }
+	
+	updatePaletteState(); // Cập nhật màu đỏ/xanh lá cây
+    document.getElementById('bottom-actions').classList.remove('hidden');
+    const btnNext = document.getElementById('btn-next-lesson');
+    const filterVal = document.querySelector('input[name="lesson_filter"]:checked').value;
+    if (filterVal === 'ALL') {
+        if (currentTestSequence.length > 0) {
+            btnNext.classList.remove('hidden');
+            let currentIndex = currentTestSequence.indexOf(currentLessonIndex);
+            if (currentIndex < currentTestSequence.length - 1) {
+                btnNext.innerText = `Bài tiếp theo (Phím ➔) ❯❯`;
+            } else {
+                btnNext.innerText = `Nộp & Xem Report ❯❯`;
+            }
+        } else {
+            btnNext.classList.add('hidden');
+        }
+    } else {
+        if (filteredIndexes.length > 1) {
+            btnNext.classList.remove('hidden');
+            btnNext.innerText = `Bài ngẫu nhiên tiếp theo (Phím ➔) ❯❯`;
+        } else btnNext.classList.add('hidden');
+    }
+}
+
+        window.onload = () => {
+            renderDashboard();
+            const selector = document.getElementById('lesson-selector');
+            lessonsData.forEach((l, i) => {
+                const opt = document.createElement('option'); opt.value = i; opt.innerText = l.name;
+                selector.appendChild(opt);
+            });
+        };
+
+        let filteredIndexes = []; // Lưu danh sách các bài đang hiển thị
+
+        function getLessonPart(lesson) {
+            // Tự động quét số câu hỏi đầu tiên để biết bài này thuộc Part mấy
+            const match = lesson.processedQuestions.match(/(?:class="q-badge"|class="[^"]*bg-blue-100[^"]*")[^>]*>(\d+)</);
+            if (match) {
+                const num = parseInt(match[1]);
+                if (num <= 10) return "PART1";
+                if (num <= 20) return "PART2";
+                if (num <= 30) return "PART3";
+                if (num <= 40) return "PART4";
+            }
+            return "ALL"; // Mặc định nếu không phân tách được
+        }
+
+        function renderDashboard() {
+            // Đánh dấu Part cho từng bài nếu chưa có
+            lessonsData.forEach(l => {
+                if(!l.part) l.part = getLessonPart(l);
+            });
+
+            // Lắng nghe sự kiện click chọn Part
+            document.querySelectorAll('input[name="lesson_filter"]').forEach(radio => {
+                radio.addEventListener('change', updateFilteredCards);
+            });
+
+            updateFilteredCards();
+            document.body.classList.add('in-dashboard');
+        }
+
+        function updateFilteredCards() {
+            const filterVal = document.querySelector('input[name="lesson_filter"]:checked').value;
+            const cardArea = document.getElementById('card-render-area');
+            const selectBox = document.getElementById('specific-lesson-select');
+            
+            let cardsHtml = '';
+            let optionsHtml = '<option value="">🗂️ Chọn bài nghe cụ thể...</option>';
+            filteredIndexes = [];
+
+            lessonsData.forEach((d, i) => {
+                // Hiển thị nếu chọn 'Full Test' hoặc đúng Part đang chọn
+                if (filterVal === 'ALL' || d.part === filterVal) {
+                    filteredIndexes.push(i);
+                    let totalQs = d.totalQs || 0;
+                    
+                    let tagsHtml = `<div class="q-tag">Listening Task <span class="q-tag-count">${totalQs}</span></div>`;
+                    if (d.lastResult) {
+                        tagsHtml += `<div class="q-tag" style="background:#f0fdf4; color:#16a34a; border-color:#bbf7d0;">Kết quả: <span class="q-tag-count" style="background:#16a34a; color:white;">${d.lastResult}</span></div>`;
+                    }
+
+                    
+
+                    optionsHtml += `<option value="${i}">${d.name || 'Untitled'}</option>`;
+                }
+            });
+            
+            cardArea.innerHTML = cardsHtml;
+            selectBox.innerHTML = optionsHtml;
+            
+            // Ẩn/hiện khu vực Card (nếu muốn bảng điều khiển gọn gàng)
+            cardArea.style.display = 'none'; // Luôn ẩn danh sách card theo yêu cầu
+			// Đổi text và sự kiện của nút bắt đầu tùy theo chế độ
+            const mainBtn = document.querySelector('.random-btn');
+            if (mainBtn) {
+                if (filterVal === 'ALL') {
+                    mainBtn.innerHTML = '<i class="fa-solid fa-play"></i> LÀM NGUYÊN BÀI (TUẦN TỰ)';
+                    mainBtn.onclick = startSequentialTest;
+                } else {
+                    mainBtn.innerHTML = '<i class="fa-solid fa-shuffle"></i> NGẪU NHIÊN 1 BÀI';
+                    mainBtn.onclick = startRandomTest;
+                }
+            }
+        }
+
+        window.startRandomTest = () => {
+            if (filteredIndexes.length === 0) {
+                alert("Hiện tại trong dữ liệu chưa có bài nào thuộc Part này nhé!");
+                return;
+            }
+            if (filteredIndexes.length === 1) {
+                startTest(filteredIndexes[0]);
+                return;
+            }
+            
+            let randomIndex;
+            // Bốc ngẫu nhiên nhưng đảm bảo không trùng với bài hiện tại đang mở
+            do {
+                randomIndex = filteredIndexes[Math.floor(Math.random() * filteredIndexes.length)];
+            } while (randomIndex === currentLessonIndex && !document.body.classList.contains('in-dashboard'));
+            
+            startTest(randomIndex);
+        };
+
+        // Lắng nghe sự kiện nhấn phím mũi tên phải (ArrowRight)
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight') {
+                // Bỏ qua nếu học sinh đang gõ chữ vào ô điền từ (tránh nhảy bài nhầm)
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                
+                // Chỉ kích hoạt nhảy bài khi đang ở trong màn hình làm bài và có nhiều hơn 1 bài để nhảy
+                if (!document.body.classList.contains('in-dashboard') && filteredIndexes.length > 1) {
+                    goToNextLesson();
+                }
+            }
+        });
+
+        window.startTest = (idx) => {
+            // 1. Loại bỏ class ẩn giao diện chính
+            document.body.classList.remove('in-dashboard');
+            // 2. Ẩn hẳn Dashboard view để không che bài tập
+            document.getElementById('dashboard-view').style.display = 'none';
+            // 3. Chuyển bài và render
+            document.getElementById('lesson-selector').value = idx;
+            switchLesson(idx);
+        };
+
+        window.goBackToDashboard = () => {
+            if(confirm("Bạn có muốn quay lại danh sách bài tập? (Tiến độ và kết quả sẽ được lưu tạm)")) {
+                saveCurrentStateToMemory(); // Chụp ảnh trạng thái trước khi thoát
+                
+                // 1. Hiện lại Dashboard view
+                document.getElementById('dashboard-view').style.display = 'flex';
+                // 2. Thêm class để ẩn giao diện làm bài
+                document.body.classList.add('in-dashboard');
+                
+                // Dừng các hoạt động của bài thi
+                if(window.timerInterval) clearInterval(window.timerInterval);
+                const audio = document.getElementById('audio');
+                if(audio) audio.pause();
+                
+                // Vẽ lại Dashboard để hiển thị điểm vừa lưu
+                renderDashboard();
+            }
+        };
+		
+		// --- LOGIC QUESTION PALETTE & BOTTOM ACTIONS ---
+function buildPalette(lesson) {
+    const pal = document.getElementById('question-palette');
+    pal.innerHTML = '';
+    const key = lesson.answerKey;
+    if (!key || Object.keys(key).length === 0) return;
+    
+    let fallbackCounter = 1;
+    
+    for (const id in key) {
+        let qLabel = "";
+        const el = document.getElementById(id);
+        
+        if (el) {
+            // Dạng 1: Trắc nghiệm (Radio/Checkbox)
+            if (el.classList.contains('question-block')) {
+                const badge = el.querySelector('.q-badge, .bg-blue-100');
+                if (badge) qLabel = badge.innerText.trim();
+            } 
+            // Dạng 2: Điền từ (Gap-fill) hoặc Kéo thả (Drop-zone)
+            else if (el.tagName === 'INPUT' || el.classList.contains('drop-zone')) {
+                const prev = el.previousElementSibling;
+                if (prev && prev.tagName === 'SPAN') {
+                    qLabel = prev.innerText.trim();
+                } else {
+                    // Nếu nằm trong bảng, thử tìm nhãn xung quanh ô đó
+                    const parent = el.parentElement;
+                    if (parent) {
+                        const badge = parent.querySelector('.q-badge, .bg-blue-100');
+                        if (badge) qLabel = badge.innerText.trim();
+                    }
+                }
+            }
+        } else {
+            // Dạng 3: Map Grid (Không có thẻ ID trực tiếp, phải quét qua Name của thẻ Radio)
+            const inputs = document.getElementsByName(id);
+            if (inputs.length > 0) {
+                const tr = inputs[0].closest('tr');
+                if (tr) {
+                    const firstTd = tr.querySelector('td');
+                    if (firstTd) {
+                        const match = firstTd.innerText.match(/^\d+/);
+                        if (match) qLabel = match[0];
+                    }
+                }
+            }
+        }
+
+        // Nếu câu nào đề bài không ghi số, dùng biến đếm dự phòng nối tiếp
+        if (!qLabel || qLabel === '#') {
+            qLabel = fallbackCounter;
+        } else {
+            // Cập nhật lại bộ đếm cho khớp với số hiện tại
+            const parsedNum = parseInt(qLabel);
+            if (!isNaN(parsedNum)) fallbackCounter = parsedNum;
+        }
+        fallbackCounter++;
+
+        // Render nút bấm
+        const btn = document.createElement('button');
+        btn.className = 'palette-btn';
+        btn.innerText = qLabel;
+        btn.dataset.targetId = id;
+        btn.onclick = () => scrollToQuestion(id);
+        pal.appendChild(btn);
+    }
+    updatePaletteState();
+}
+
+		function updatePaletteState() {
+            document.querySelectorAll('.palette-btn').forEach(btn => {
+                const id = btn.dataset.targetId;
+                let answered = false; let isCorrect = false; let isIncorrect = false;
+                
+                const el = document.getElementById(id);
+                if(el) {
+                    if(el.tagName === 'INPUT') {
+                        answered = el.value.trim() !== '';
+                    } 
+                    else if(el.classList.contains('drop-zone')) {
+                        answered = (el.dataset.value || '').trim() !== '';
+                    } 
+                    else if (el.classList.contains('question-block')) {
+                        // Nhận diện xuyên thấu vào các câu Multiple Choice (Radio/Checkbox)
+                        const inputs = el.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+                        if (inputs.length > 0) {
+                            for(let i of inputs) {
+                                if(i.checked) answered = true;
+                                const target = i.parentElement;
+                                if(target.classList.contains('correct-text') || target.classList.contains('correct-answer')) isCorrect = true;
+                                if(target.classList.contains('incorrect-answer')) isIncorrect = true;
+                            }
+                        }
+                    }
+                    
+                    // Quét đúng sai cho dạng text/drop-zone
+                    if(el.classList.contains('correct-answer')) isCorrect = true;
+                    if(el.classList.contains('incorrect-answer')) isIncorrect = true;
+                } else {
+                    // Nhận diện cho Map Grid
+                    const inputs = document.getElementsByName(id);
+                    if(inputs.length) {
+                        for(let i of inputs) {
+                            if(i.checked) answered = true;
+                            const target = i.closest('td') || i.parentElement;
+                            if(target.classList.contains('correct-text') || target.classList.contains('correct-answer')) isCorrect = true;
+                            if(target.classList.contains('incorrect-answer')) isIncorrect = true;
+                        }
+                    }
+                }
+                
+                btn.className = 'palette-btn'; // Reset
+                if (isIncorrect) btn.classList.add('incorrect');
+                else if (isCorrect) btn.classList.add('correct');
+                else if (answered) btn.classList.add('answered');
+            });
+        }
+
+function scrollToQuestion(id) {
+    let el = document.getElementById(id);
+    if(!el) {
+        const inputs = document.getElementsByName(id);
+        if(inputs.length) el = inputs[0].closest('.question-block') || inputs[0].closest('tr');
+    }
+    if(el) {
+        el.scrollIntoView({behavior: 'smooth', block: 'center'});
+        el.classList.remove('blink-effect');
+        void el.offsetWidth; // Trigger reflow
+        el.classList.add('blink-effect');
+    }
+}
+
+// Lắng nghe sự kiện gõ phím/chọn đáp án để tô màu xanh da trời
+document.addEventListener('input', (e) => { if(e.target.closest('#questions-content')) updatePaletteState(); });
+document.addEventListener('change', (e) => { if(e.target.closest('#questions-content')) updatePaletteState(); });
+
+		let currentTestSequence = []; 
+        let usedLessons = []; // Biến mới: Ghi nhớ các bài đã từng làm trong phiên này
+
+        window.startSequentialTest = () => {
+            // Lọc ra danh sách các bài CHƯA từng được bốc
+            let availableLessons = lessonsData.map((l, i) => !usedLessons.includes(i) ? i : -1).filter(i => i !== -1);
+
+            // Phân nhóm các bài còn trống theo Part
+            const p1 = availableLessons.filter(i => lessonsData[i].part === 'PART1');
+            const p2 = availableLessons.filter(i => lessonsData[i].part === 'PART2');
+            const p3 = availableLessons.filter(i => lessonsData[i].part === 'PART3');
+            const p4 = availableLessons.filter(i => lessonsData[i].part === 'PART4');
+
+            // Nếu 1 trong 4 Part đã bị xài hết bài, tiến hành reset bộ nhớ
+            if (!p1.length || !p2.length || !p3.length || !p4.length) {
+                alert("Hoan hô! Bạn đã giải hết các tổ hợp đề không trùng lặp. Hệ thống sẽ trộn lại từ đầu nhé!");
+                usedLessons = []; // Xóa trí nhớ
+                return startSequentialTest(); // Tự động bốc lại vòng mới
+            }
+
+            // Thuật toán: Bốc ngẫu nhiên đúng 1 bài từ các bài CHƯA LÀM
+            currentTestSequence = [
+                p1[Math.floor(Math.random() * p1.length)],
+                p2[Math.floor(Math.random() * p2.length)],
+                p3[Math.floor(Math.random() * p3.length)],
+                p4[Math.floor(Math.random() * p4.length)]
+            ];
+
+            // Lưu 4 bài vừa bốc vào sổ tay "Đã làm"
+            usedLessons.push(...currentTestSequence);
+
+            // Làm sạch mọi lịch sử làm bài trước đó trong cả ngân hàng đề
+            lessonsData.forEach(l => {
+                delete l.lastResult; delete l.scoreInfo; delete l.timeTaken; 
+                delete l.dateCompleted; delete l.submitAttempt; delete l.savedDOM;
+            });
+
+            // Ra lệnh bắt đầu bài thi
+            startTest(currentTestSequence[0]);
+        };
+
+        window.goToNextLesson = () => {
+            const filterVal = document.querySelector('input[name="lesson_filter"]:checked').value;
+            if (filterVal === 'ALL') {
+                // Di chuyển sang Part tiếp theo trong bộ 4 bài đã bốc
+                let currentIndex = currentTestSequence.indexOf(currentLessonIndex);
+                if (currentIndex >= 0 && currentIndex < currentTestSequence.length - 1) {
+                    startTest(currentTestSequence[currentIndex + 1]);
+                } else {
+				
+				// --- THÊM CODE GỬI BÁO CÁO FULL TEST ---
+                    let totalCorrect = 0, totalQs = 0, totalTime = 0;
+                    currentTestSequence.forEach(idx => {
+                        const l = lessonsData[idx];
+                        if (l.scoreInfo) {
+                            totalCorrect += l.scoreInfo.correct;
+                            totalQs += l.scoreInfo.total;
+                            let t = (l.timeTaken || "00:00").split(':');
+                            totalTime += parseInt(t[0]) * 60 + parseInt(t[1]);
+                        }
+                    });
+                    sendReportToSheet(totalCorrect, totalQs, totalTime, "Full Test (4 Parts)");
+                    // ---------------------------------------
+					
+                    openReport(); // Hoàn thành 4 Parts thì tự động bung Report
+                }
+            } else {
+                startRandomTest(); // Chế độ luyện tập ngẫu nhiên
+            }
+        };
+
+window.saveCurrentResult = () => {
+    saveCurrentStateToMemory();
+    const clone = document.documentElement.cloneNode(true);
+    
+    // Dọn dẹp giao diện trước khi xuất file tĩnh
+    ['#dashboard-view', '.back-btn', '#bottom-actions'].forEach(sel => {
+        const el = clone.querySelector(sel);
+        if(el) el.remove();
+    });
+    clone.querySelectorAll('script').forEach(s => s.remove());
+    clone.querySelector('button[onclick="checkResults()"]').remove();
+    
+    const html = "<!DOCTYPE html>\n" + clone.outerHTML;
+    const blob = new Blob([html], {type: "text/html;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `Result_${lessonsData[currentLessonIndex].name}.html`;
+    a.click();
+};
+
+// --- LOGIC BÁO CÁO (REPORT) ---
+        let isFromReport = false;
+
+        function detectTypes(lesson) {
+            let types = new Set();
+            if (lesson.processedQuestions.includes('type="radio"') || lesson.processedQuestions.includes('type="checkbox"')) types.add('Multiple Choice');
+            if (lesson.processedQuestions.includes('type="text"')) types.add('Gap Fill');
+            if (lesson.processedQuestions.includes('drop-zone')) types.add('Matching/Map');
+            return Array.from(types).join(', ') || 'Mixed';
+        }
+
+        function getBandScore(correct, total) {
+            if(total === 0) return "0.0";
+            let scaled = Math.round((correct / total) * 40); // Đưa về hệ số 40 câu IELTS chuẩn
+            if (scaled >= 39) return "9.0"; if (scaled >= 37) return "8.5";
+            if (scaled >= 35) return "8.0"; if (scaled >= 32) return "7.5";
+            if (scaled >= 30) return "7.0"; if (scaled >= 26) return "6.5";
+            if (scaled >= 23) return "6.0"; if (scaled >= 18) return "5.5";
+            if (scaled >= 16) return "5.0"; if (scaled >= 13) return "4.5";
+            if (scaled >= 10) return "4.0"; if (scaled >= 8) return "3.5";
+            if (scaled >= 6) return "3.0"; if (scaled >= 4) return "2.5";
+            return "0.0"; 
+        }
+
+        function openReport() {
+            document.body.classList.add('in-dashboard');
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('report-view').style.display = 'flex';
+            renderReportData();
+        }
+
+        function closeReport() {
+            document.getElementById('report-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = 'flex';
+        }
+
+        function viewFromReport(idx) {
+            isFromReport = true;
+            document.getElementById('report-view').style.display = 'none';
+            
+            // Xử lý nút Back
+            document.getElementById('btn-back-report').classList.remove('hidden');
+            document.querySelector('.back-btn:not(#btn-back-report)').classList.add('hidden');
+            
+            startTest(idx);
+        }
+
+        function backToReport() {
+            isFromReport = false;
+            saveCurrentStateToMemory(); // Lưu tạm nếu học sinh đang xem dở
+            
+            // Đổi lại nút Back
+            document.getElementById('btn-back-report').classList.add('hidden');
+            document.querySelector('.back-btn:not(#btn-back-report)').classList.remove('hidden');
+            
+            // Dừng Audio
+            if(window.timerInterval) clearInterval(window.timerInterval);
+            const audio = document.getElementById('audio');
+            if(audio) audio.pause();
+            
+            openReport();
+        }
+
+        function renderReportData() {
+            let partAcc = { 'PART1': {c:0, t:0}, 'PART2': {c:0, t:0}, 'PART3': {c:0, t:0}, 'PART4': {c:0, t:0}, 'ALL': {c:0, t:0} };
+            let totalCorrect = 0, totalQs = 0, completedCount = 0;
+            let historyRows = '';
+
+            const filterVal = document.querySelector('input[name="lesson_filter"]:checked').value;
+            
+            // LOGIC QUAN TRỌNG: Tách riêng danh sách bài sẽ được đưa vào tính điểm Report
+            let reportList = [];
+            if (filterVal === 'ALL' && currentTestSequence && currentTestSequence.length === 4) {
+                // Nếu đang làm Full Test, CHỈ bốc đúng 4 Parts đã được random để tính điểm
+                reportList = currentTestSequence.map(idx => ({ l: lessonsData[idx], idx: idx }));
+            } else {
+                // Nếu đang luyện tập Part lẻ tẻ ngẫu nhiên, quét tất cả bài đã có kết quả
+                reportList = lessonsData.map((l, idx) => ({ l: l, idx: idx }));
+            }
+
+            reportList.forEach(item => {
+                const l = item.l;
+                const idx = item.idx;
+
+                if(l.lastResult && l.scoreInfo) {
+                    completedCount++;
+                    totalCorrect += l.scoreInfo.correct;
+                    totalQs += l.scoreInfo.total;
+                    
+                    let p = l.part || 'ALL';
+                    if(partAcc[p]) {
+                        partAcc[p].c += l.scoreInfo.correct;
+                        partAcc[p].t += l.scoreInfo.total;
+                    }
+                    
+                    let types = detectTypes(l);
+                    let timeStr = l.timeTaken || '00:00';
+                    let dateStr = l.dateCompleted || '-';
+                    
+                    let percent = Math.round((l.scoreInfo.correct/l.scoreInfo.total)*100);
+                    
+                    historyRows += `<tr>
+                        <td class="font-medium">${l.name.substring(0,25)}${l.name.length>25?'...':''}</td>
+                        <td>${types}</td>
+                        <td>${l.scoreInfo.correct}/${l.scoreInfo.total} <span class="text-gray-400">(${percent}%)</span></td>
+                        <td>${timeStr}</td>
+                        <td>${dateStr}</td>
+                        <td class="text-right"><a class="btn-detail" onclick="viewFromReport(${idx})">Xem chi tiết →</a></td>
+                    </tr>`;
+                }
+            });
+
+            // Gắn số liệu tổng quan lên giao diện Report
+            document.getElementById('rp-total-lessons').innerText = completedCount;
+            document.getElementById('rp-correct').innerText = `${totalCorrect} / ${totalQs}`;
+            
+            // Xử lý Band điểm: Chỉ tính và hiện Band điểm IELTS khi học sinh làm Full Test
+            if (filterVal === 'ALL') {
+                document.getElementById('rp-band').innerText = getBandScore(totalCorrect, totalQs);
+                document.getElementById('rp-band').classList.remove('text-gray-400');
+                document.getElementById('rp-band').classList.add('text-orange-600');
+            } else {
+                document.getElementById('rp-band').innerText = "---";
+                document.getElementById('rp-band').classList.remove('text-orange-600');
+                document.getElementById('rp-band').classList.add('text-gray-400');
+            }
+
+            document.getElementById('rp-history-count').innerText = completedCount;
+            document.getElementById('rp-history-body').innerHTML = historyRows || '<tr><td colspan="6" class="text-center py-4">Chưa có dữ liệu làm bài.</td></tr>';
+
+            // Vẽ Progress Bars thể hiện độ chính xác theo Parts
+            let barsHTML = '';
+            for(let key in partAcc) {
+                if(partAcc[key].t > 0) {
+                    let acc = Math.round((partAcc[key].c / partAcc[key].t) * 100);
+                    let partName = key === 'ALL' ? 'Full Test / Mixed' : key.replace('PART', 'Part ');
+                    barsHTML += `
+                        <div class="progress-row">
+                            <div class="progress-label">${partName}</div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: ${acc}%"></div>
+                            </div>
+                        </div>`;
+                }
+            }
+            document.getElementById('rp-accuracy-bars').innerHTML = barsHTML || '<div class="text-sm text-gray-500 italic">Chưa đủ dữ liệu để thống kê theo part.</div>';
+        }
+    </script>
+</body>
+</html>
+    
