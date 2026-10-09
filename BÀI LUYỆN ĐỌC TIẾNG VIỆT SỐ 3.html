@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BÀI LUYỆN ĐỌC TIẾNG VIỆT SỐ 3</title>
+    <script>
+        window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f0f2f5; line-height: 1.6; }
+        h1 { text-align: center; color: #1a237e; }
+        .section-header { color: #e67e22; border-bottom: 2px solid #e67e22; padding-bottom: 10px; margin-top: 40px; margin-bottom: 20px; }
+        .question-box { background: #fff; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .q-text { font-size: 16px; font-weight: 600; margin-bottom: 15px; }
+        
+        /* Ẩn input radio mặc định */
+        input[type="radio"] { display: none; }
+        
+        /* Trắc nghiệm Format Mới */
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .option-label { display: flex; align-items: center; padding: 10px; border: 1px solid #dcdde1; border-radius: 8px; cursor: pointer; transition: 0.2s; background: #fafafa; }
+        .option-label:hover { background: #f1f2f6; }
+        
+        .opt-letter { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; border-radius: 50%; background-color: white; color: #3498db; border: 2px solid #3498db; box-sizing: border-box; font-weight: bold; margin-right: 12px; font-size: 15px; transition: 0.2s; }
+		input[type="radio"]:checked + .opt-letter { background-color: #3498db; color: white; box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2); }
+        .option-label.correct { border-color: #2ecc71; background: #d5f5e3; }
+        .option-label.correct .opt-letter { background-color: #27ae60; }
+        .option-label.wrong { border-color: #e74c3c; background: #fadbd8; }
+        .option-label.wrong .opt-letter { background-color: #e74c3c; }
+        
+        /* Đúng Sai Format Mới */
+        .tf-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .tf-table th, .tf-table td { border: 1px solid #dcdde1; padding: 12px; }
+        .tf-table th { background: #f8f9f9; text-align: center; }
+        .tf-cell-center { text-align: center; }
+        
+        .opt-letter-tf { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; border-radius: 4px; background-color: #34495e; color: white; font-weight: bold; margin-right: 10px; font-size: 14px; }
+        .tf-radio-label { display: block; cursor: pointer; }
+        .tf-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background-color: #ecf0f1; font-weight: bold; color: #7f8c8d; transition: 0.2s; }
+        
+        input[type="radio"][value="Đ"]:checked + .tf-btn { background-color: #2ecc71; color: white; box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.3); }
+        input[type="radio"][value="S"]:checked + .tf-btn { background-color: #e74c3c; color: white; box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.3); }
+        .tf-correct .tf-btn { background-color: #27ae60 !important; color: white !important; }
+        .tf-wrong .tf-btn { background-color: #c0392b !important; color: white !important; }
+
+        /* Trả lời ngắn */
+        .sa-input { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #bdc3c7; border-radius: 6px; box-sizing: border-box; }
+        .sa-input:focus { border-color: #3498db; outline: none; }
+        
+        .actions { margin-top: 15px; display: flex; gap: 10px; }
+        button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-check { background: #3498db; }
+        .btn-key { background: #9b59b6; display: none; }
+        .btn-submit-section { background: #e74c3c; width: 100%; padding: 15px; font-size: 16px; margin-top: 10px; border-radius: 8px; }
+        .feedback { margin-top: 10px; font-weight: bold; }
+        .explanation-box { display: none; margin-top: 15px; padding: 15px; background: #f8f9f9; border-left: 4px solid #f1c40f; border-radius: 4px; }
+        
+        #login-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .login-box { background: white; padding: 30px; border-radius: 10px; width: 320px; text-align: center; }
+        .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px;}
+        .login-box button { width: 100%; padding: 12px; background: #2ecc71; color: white; border: none; border-radius: 5px; font-size: 16px;}
+    
+		/* Hiệu ứng RGB cho tên Học sinh */
+        .rgb-wrapper { text-align: center; display: none; margin-bottom: 20px; }
+        .rgb-box {
+            position: relative; padding: 12px 30px; background: #fff;
+            border-radius: 8px; display: inline-block; font-size: 18px;
+            font-weight: bold; color: #1a237e; text-transform: uppercase;
+        }
+        .rgb-box::before {
+            content: ""; position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px;
+            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            background-size: 400%; border-radius: 12px; z-index: -1;
+            animation: rgb-border 10s linear infinite;
+        }
+        @keyframes rgb-border {
+            0% { background-position: 0 0; } 50% { background-position: 400% 0; } 100% { background-position: 0 0; }
+        }
+
+        /* Nút Tải bài đã chấm */
+        #btn-download-html {
+            position: fixed; bottom: 20px; right: 20px; background: #34495e; color: white;
+            padding: 15px 20px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: none; z-index: 999; font-size: 16px; border: 2px solid #ecf0f1; transition: 0.3s;
+        }
+        #btn-download-html:hover { background: #2c3e50; transform: scale(1.05); }
+		
+		.hint-icon { cursor: pointer; font-size: 20px; margin-left: 10px; display: inline-block; transition: transform 0.2s; user-select: none; }
+        .hint-icon:hover { transform: scale(1.2); }
+        .hint-box { display: none; background: #fffdf7; border-left: 4px solid #f1c40f; padding: 15px; margin-top: 15px; border-radius: 4px; font-size: 15px; color: #555; }
+		
+		/* CSS cho Pop-up Gợi ý */
+        #hint-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .hint-modal-content { background: white; padding: 25px; border-radius: 8px; width: 600px; max-width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; font-size: 16px; line-height: 1.6; border-top: 5px solid #f1c40f; }
+        .close-hint-btn { position: absolute; top: 15px; right: 15px; background: #e74c3c; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; justify-content: center; align-items: center; }
+		
+		
+	</style>
+</head>
+<body>
+    <div id="login-modal">
+        <div class="login-box">
+            <h2>Đăng Nhập Làm Bài</h2>
+            <input type="text" id="hs-id" placeholder="Mã học sinh (ID)">
+            <input type="password" id="hs-pass" placeholder="Mật khẩu">
+            <button id="btnLogin" onclick="handleLogin()">ĐĂNG NHẬP</button>
+            <div id="login-msg" style="color: #e74c3c; margin-top: 10px;"></div>
+        </div>
+    </div>
+	
+	<div id="hint-modal-overlay" onclick="if(event.target === this) closeHintModal()">
+        <div class="hint-modal-content">
+            <button class="close-hint-btn" onclick="closeHintModal()">×</button>
+            <h3 style="margin-top:0; color:#d35400;">💡 Gợi ý</h3>
+            <div id="hint-modal-body"></div>
+        </div>
+    </div>
+
+    <h1>BÀI LUYỆN ĐỌC TIẾNG VIỆT SỐ 3</h1>
+	<!-- KHUNG HIỂN THỊ TÊN HỌC SINH -->
+    <div class="rgb-wrapper" id="student-info-container">
+        <div class="rgb-box" id="student-name-display"></div>
+    </div>
+    <div id="quizContainer"></div>
+	<!-- NÚT TẢI BÀI -->
+    <button id="btn-download-html" onclick="downloadGradedHTML()">📥 TẢI BÀI ĐÃ CHẤM</button>
+
+    <script>
+        
+        const quizData = [{"title":"BÀI 1","questions":[{"originalNum":1,"qType":"1","qText":"Câu 1. [EMPIRE TEAM] Phương thức biểu đạt của đoạn trích trên là:","context":"Đọc đoạn trích sau và trả lời câu hỏi:<br>“(1) Trời đã bắt đầu đêm, một đêm mùa hạ êm như nhung và thoảng qua gió mát. Đường phố và các ngõ con dần dần chứa đầy bóng tối. Các nhà đã đóng im im, trừ một vài cửa hàng còn thức, nhưng cửa chỉ để hé ra một khe ánh sáng. Trẻ con tụ họp nhau ở thềm hè, tiếng cười nói vui vẻ, khiến An thèm muốn nhập bọn với chúng để nô đùa, nhưng sợ trái lời mẹ dặn phải coi hàng, nên hai chị em đành ngồi yên trên chõng, đưa mắt theo dõi những bóng người về muộn, từ từ đi trong đêm.<br>(2) Vòm trời hàng ngàn ngôi sao ganh nhau lấp lánh, lẫn với vệt sáng của những con đom đóm bay là trên mặt đất hay leo vào cành cây. An và Liên lặng ngước mắt lên nhìn các vì sao để tìm sông Ngân Hà và con vịt theo sau ông Thần Nông. Vũ trụ thăm thẳm bao la đối với tâm hồn hai đứa trẻ như đầy bí mật và xa lạ và làm mỏi trí nghĩ, nên chỉ một lát hai chị em lại chúi nhìn về mặt đất, về quầng sáng thân mật chung quanh ngọn đèn lay động trên chõng hàng của chị Tí.”<br>(Trích Hai đứa trẻ - Thạch Lam)<br><br>","image":null,"options":{"A":"Tự sự.","B":"Miêu tả.","C":"Biểu cảm.","D":"Nghị luận.<br>Chọn B"},"correct":"B","explanation":"","hint":""},{"originalNum":2,"qType":"1","qText":"Câu 2. [EMPIRE TEAM] Biện pháp tu từ từ vựng nào được sử dụng trong câu văn đầu tiên của đoạn (2) trong đoạn trích trên?","context":"","image":null,"options":{"A":"Ẩn dụ.","B":"So sánh.","C":"Nhân hóa.","D":"Phép đối."},"correct":"C","explanation":"Lời Giải:<br>Vòm trời hàng ngàn ngôi sao ganh nhau lấp lánh, lẫn với vệt sáng của những con đom đóm bay là trên mặt đất hay leo vào cành cây.<br>Chọn C","hint":""},{"originalNum":3,"qType":"1","qText":"Câu 3. [EMPIRE TEAM] Trong những từ sau, đâu là từ láy tượng thanh?","context":"","image":null,"options":{"A":"dần dần","B":"im im","C":"đom đóm","D":"lấp lánh<br>Chọn B"},"correct":"B","explanation":"","hint":""},{"originalNum":4,"qType":"1","qText":"Câu 4. [EMPIRE TEAM] “Trẻ con tụ họp nhau ở thềm hè, tiếng cười nói vui vẻ, khiến An thèm muốn nhập bọn với chúng để nô đùa, nhưng sợ trái lời mẹ dặn phải coi hàng, nên hai chị em đành ngồi yên trên chõng.” Ý thức nào đã tác động đến chị em An, khiến họ không “nhập cuộc” cùng bọn trẻ?","context":"","image":null,"options":{"A":"Ý thức về bổn phận.","B":"Ý thức về trách nhiệm.","C":"Ý thức về thân phận.","D":"Ý thức về thời gian."},"correct":"B","explanation":"Lời Giải<br>Trách nhiệm: điều được giao phải thực hiện đúng. Bổn phận: điều không được giao nhưng phải thực hiện (theo đạo lí)<br>Chọn B","hint":""},{"originalNum":5,"qType":"1","qText":"Câu 5: [EMPIRE TEAM] “Vũ trụ thăm thẳm bao la đối với tâm hồn hai đứa trẻ như đầy bí mật và xa lạ và làm mỏi trí nghĩ, nên chi một lát hai chị em lại chúi nhìn về mặt đất, về quầng sáng thân mật chung quanh ngọn đèn lay động trên chõng hàng của chị Tí”. Câu văn trên thể hiện điều gì về “cái đang vọng nhìn” và “cái đang đối mặt” của chị em An?","context":"","image":null,"options":{"A":"Chị em An nghĩ rằng, ánh sáng của vũ trụ thăm thẳm kia chỉ là ảo ảnh, ngọn đèn cạnh bên mới là hiện thực.","B":"Sự vĩ mô của vũ trụ trong tầm ngắm là niềm tin về sự tự do, tiến xa nhưng hiện thực phải đối mặt của chị em An là đời sống quẩn quanh nơi phố huyện.","C":"Hiện thực đã thức tỉnh chị em An, họ phải đối mặt với cuộc sống quẩn quanh, ý chí và động lực bị triệt tiêu, họ sẵn sàng đón lấy hư vô và sự chết.","D":"Nhìn vũ trụ khôn cùng, chị em An lại nghĩ về thân phận nhỏ bé của mình với cái nhìn đầy mặc cảm, trong đó có sự mâu thuẫn và giằng xé, vừa muốn thoát khỏi vừa muốn ở lại huyện nghèo.<br>Chọn B"},"correct":"B","explanation":"","hint":""}]},{"title":"BÀI ĐỌC 2","questions":[{"originalNum":6,"qType":"1","qText":"Câu 6: [EMPIRE TEAM] Đoạn văn trên thuộc thể loại nào?","context":"Đọc đoạn trích sau và trả lời câu hỏi:<br>“Trong đám tướng lĩnh của Ngọc Hoàng, trước tiên phải kể thần Sét. Thần Sét có danh hiệu là Thiên Lôi, cũng có khi gọi là ông Sấm. Thần có mặt mũi rất manh ác, tiếng quát tháo rất dữ dội. Thần chuyên một việc thi hành luật pháp ở trần gian. Hành động của thần phản ánh sự thịnh nộ của Ngọc Hoàng. Thần có một lưỡi búa đá. Khi xử án kẻ nào dù là người, là vật, là cây cỏ thì thần tự mình nhảy xuống tận nơi trỏ ngọn cờ vào đầu tội nhân rồi dùng lưỡi búa bổ xuống đầu. Có khi xong việc, thần không mang lưỡi búa theo mà quẳng luôn tại đó. Thần thường ngủ về mùa đông, vào khoảng tháng Hai, tháng Ba mới lại dậy làm việc...”<br>(Thần sét, Theo SGK Ngữ văn 10 (Kết nối tri thức với cuộc sống), tr.12-13, NXB Giáo dục Việt Nam).<br><br>","image":null,"options":{"A":"Truyền thuyết.","B":"Thần thoại.","C":"Cổ tích.","D":"Truyện cổ."},"correct":"B","explanation":"Lời Giải:<br>Thần thoại: truyện kể về các vị thần, có sức mạnh về thể chất và trí tuệ, có khả năng khai sinh con người và tạo lập thế giới.<br>Chọn B","hint":""},{"originalNum":7,"qType":"1","qText":"Câu 7: [EMPIRE TEAM] Thần Sét trong đoạn văn trên được miêu tả là người như thế nào?","context":"","image":null,"options":{"A":"Độc đoán, khó tính và thường có những cơn thịnh nộ bất thường.","B":"Nghiêm khắc, khó tính, hành động thường phản ánh sự thịnh nộ của Thần.","C":"Nghiêm khắc, độc đoán, hay có những cơn thịnh nộ đầy hung tàn, tàn ác và hung bạo.","D":"Nghiêm khắc, hùng hổ, hành động thường phản ánh sự thịnh nộ của Ngọc Hoàng."},"correct":"D","explanation":"Lời Giải:<br>“Thần có mặt mũi rất manh ác, tiếng quát tháo rất dữ dội. Thần chuyên một việc thi hành luật pháp ở trần gian. Hành động của thần phản ánh sự thịnh nộ của Ngọc Hoàng.”<br>Chọn D","hint":""},{"originalNum":8,"qType":"1","qText":"Câu 8. [EMPIRE TEAM] Phép liên kết nào được sử dụng chủ yếu trong đoạn văn trên?","context":"","image":null,"options":{"A":"Phép lặp.","B":"Phép liên tưởng.","C":"Phép thế.","D":"Phép tương phản."},"correct":"A","explanation":"Lời Giải:<br>Phép lặp “Thần”.<br>Chọn A","hint":""},{"originalNum":9,"qType":"1","qText":"Câu 9. [EMPIRE TEAM] Khi xử án, Thần thường có hành động gì?","context":"","image":null,"options":{"A":"Giết chết ngay lập tức.","B":"Lấy lưỡi búa bổ xuống đầu.","C":"Lấy cung tên bắn vào đầu.","D":"Dùng phép đẩy vào ngục tối."},"correct":"B","explanation":"Lời Giải:<br>“Khi xử án kẻ nào dù là người, là vật, là cây cỏ thì thần tự mình nhảy xuống tận nơi trỏ ngọn cờ vào đầu tội nhân rồi dùng lưỡi búa bổ xuống đầu.”<br>Chọn B","hint":""},{"originalNum":10,"qType":"1","qText":"Câu 10. [EMPIRE TEAM] Phương thức biểu đạt nào được sử dụng trong đoạn văn trên?","context":"","image":null,"options":{"A":"Miêu tả.","B":"Tự sự.","C":"Miêu tả, tự sự.","D":"Miêu tả, tự sự, biểu cảm.<br>Chọn C"},"correct":"C","explanation":"","hint":""}]},{"title":"BÀI ĐỌC 3","questions":[{"originalNum":11,"qType":"1","qText":"Câu 11. [EMPIRE TEAM] Phương thức biểu đạt chính của đoạn văn trên là?","context":"Đọc đoạn trích sau và trả lời câu hỏi:<br>“Người ta hay nói đến công phu người viết tiểu thuyết. Tôn-xtôi đã chữa đi chữa lại nhiều lần cuốn tiểu thuyết đồ sộ Chiến tranh và hòa bình. Phlô-be cân nhắc chữ trên cân tiểu li như một thầy lang bốc những vị thuốc công phạt có thể chết người. Nhưng các nhà lí thuyết ít nói đến công phu của nhà thơ. Ngược lại thiên hạ sính ca tụng những nhà thơ viết tức khắc trong những cơn bốc đồng, những nhà thơ thiên phú. Trời cho thì trời lại lấy đi. Những cơn bốc đồng thường ngắn ngủi.<br>Tôi rất biết những câu thơ hay đều kì ngộ, nhưng là kì ngộ kết quả của một thành tâm kiên trì, một đa mang đắm đuối, làm động lòng quý thần, chứ không phải may rủi đơn thuần. Làm thơ không phải là đánh quả. Và không ai trúng số độc đắc suốt đời.”<br>(Trích *Chữ bầu lên nhà thơ*, Lê Đạt).<br><br>","image":null,"options":{"A":"Nghị luận.","B":"Thuyết minh.","C":"Tự sự.","D":"Biểu cảm.<br>Chọn A"},"correct":"A","explanation":"","hint":""},{"originalNum":12,"qType":"1","qText":"Câu 12. [EMPIRE TEAM] “Nhà thơ thiên phú” được hiểu là những người:","context":"","image":null,"options":{"A":"Những nhà thơ có tài năng phi thường, sức sáng tạo đặc biệt và cá tính.","B":"Những nhà thơ có sự rèn luyện, trau dồi từng ngày để tạo ra những điều đặc biệt.","C":"Những nhà thơ giỏi, có tài thông qua quá trình học tập, nghiên cứu và rèn luyện.","D":"Những nhà thơ có tài năng bẩm sinh, trời cho, và có cá tính nghệ thuật độc đáo.<br>Chọn D"},"correct":"D","explanation":"","hint":""},{"originalNum":13,"qType":"1","qText":"Câu 13: [EMPIRE TEAM] Trong đoạn trích trên, tác giả thể hiện quan điểm thích những nhà thơ như thế nào?","context":"","image":null,"options":{"A":"Có khả năng thiên phú và sức sáng tạo đặc biệt.","B":"Nhà thơ có thể viết tức khắc trong những giây phút bốc đồng, giàu sáng tạo nghệ thuật.","C":"Có sự thành tâm, kiên trì, làm động lòng quỷ thần, đa mang đắm đuối.","D":"Nhà thơ có khả năng bẩm sinh trời cho, có sức động lòng quỷ thần, đa mang đắm đuối."},"correct":"C","explanation":"Lời Giải:<br>“Tôi rất biết những câu thơ hay đều kì ngộ, nhưng là kì ngộ kết quả của một thành tâm kiên trì, một đa mang đắm đuối, làm động lòng quỷ thần, chứ không phải may rủi đơn thuần.”<br>Chọn C","hint":""},{"originalNum":14,"qType":"1","qText":"Câu 14: [EMPIRE TEAM] Từ “đánh quả” trong câu văn “làm thơ không phải đánh quả” có ý nghĩa gì?","context":"","image":null,"options":{"A":"Lợi dụng thời cơ để tiến hành những vụ làm ăn có khả năng đem lại món lợi lớn.","B":"Thành quả có được để tự hào, ca tụng những gì đã làm được.","C":"Đánh giá kết quả từ những câu thơ hàm súc, giàu tính tưởng tượng mà không chú ý nội dung.","D":"Tiền bạc, danh vọng, sự nổi tiếng, những thành quả mà ai cũng mong muốn.<br>Chọn A"},"correct":"A","explanation":"","hint":""},{"originalNum":15,"qType":"1","qText":"Câu 15: [EMPIRE TEAM] Từ nào sau đây không đồng nghĩa với từ “kì ngộ” có trong đoạn văn trên:","context":"","image":null,"options":{"A":"Tương phùng.","B":"Tương ngộ.","C":"Gặp gỡ.","D":"Giao lưu."},"correct":"D","explanation":"Lời Giải:<br>Kì ngộ: sự gặp gỡ lạ lùng.<br>Chọn D","hint":""}]},{"title":"BÀI ĐỌC 4","questions":[{"originalNum":16,"qType":"1","qText":"Câu 16. [EMPIRE TEAM] Địa danh tháp Nhạn được nhắc đến trong đoạn trích trên được đặt ở đâu?","context":"Đọc đoạn trích sau và trả lời câu hỏi:<br>“Hiền tài là nguyên khí của quốc gia”, nguyên khí thịnh thì thế nước mạnh, rồi lên cao, nguyên khí suy thì thế nước yếu, rồi xuống thấp. Vì vậy các đấng thánh đế minh vương chẳng ai không lấy việc bồi dưỡng nhân tài, kén chọn kẻ sĩ, vun trồng nguyên khí làm việc đầu tiên. Kẻ sĩ quan hệ với quốc gia trọng đại như thế, cho nên quý chuộng kẻ sĩ không biết thế nào là cùng. Đã yêu mến cho khoa danh, lại đề cao bằng tước trật. Ban ân rất lớn mà vẫn cho là chưa đủ. Lại nêu tên ở tháp Nhạn, ban danh hiệu Long hổ, bày tiệc Văn hỉ. Triều đình mừng được người tài, không có việc gì không làm đến mức cao nhất. Nay thánh minh lại cho rằng, chuyện hay việc tốt tuy có một thời lừng lẫy, những lời khen tiếng thơm chưa đủ vẻ sáng lâu dài, cho nên lại dựng đá đề danh đặt ở cửa Hiền Quan, khiến cho kẻ sĩ trông vào mà phấn chấn hâm mộ, rèn luyện danh tiết, gắng sức giúp vua. Há chỉ là chuộng văn suông, ham tiếng hão mà thôi đâu.”<br>(Hiền tài là nguyên khí quốc gia, Thân Nhân Trung).<br><br>","image":null,"options":{"A":"Trung Quốc.","B":"Việt Nam.","C":"Đài Loan.","D":"Hàn Quốc.<br>Chọn A"},"correct":"A","explanation":"","hint":""},{"originalNum":17,"qType":"1","qText":"Câu 17. [EMPIRE TEAM] Các vị vua anh minh đã ban ân gì cho kẻ sĩ?","context":"","image":null,"options":{"A":"Ban cho kẻ sĩ công danh tài lộc, là kẻ mạnh trước thiên hạ, quyết định mọi điều trong xã hội.","B":"Ban cho kẻ sĩ ấn vàng, lệnh bài, để giúp nước giúp dân, cứu bách gia trăm họ.","C":"Quý chuộng kẻ sĩ, trọng dụng người có tài, ban cho chức tước, đề cao và coi trọng.","D":"Quý chuộng kẻ sĩ, giao cho những trọng trách quan trọng trong bộ máy nhà nước."},"correct":"C","explanation":"Lời Giải:<br>*Kẻ sĩ quan hệ với quốc gia trọng đại như thế, cho nên quý chuộng kẻ sĩ không biết thế nào là cùng. Đã yêu mến cho khoa danh, lại đề cao bằng tước trật. Ban ân rất lớn mà vẫn cho là chưa đủ. Lại nêu tên ở tháp Nhạn, ban danh hiệu Long hổ, bày tiệc Văn hỉ. Triều đình mừng được người tài, không có việc gì không làm đến mức cao nhất.*<br>Chọn C","hint":""},{"originalNum":18,"qType":"1","qText":"Câu 18: [EMPIRE TEAM] Tìm từ đồng nghĩa với từ “Thánh minh đế vương” có trong đoạn trích trên?","context":"","image":null,"options":{"A":"Minh vương.","B":"Thiên tử.","C":"Minh quân.","D":"Hoàng thượng."},"correct":"C","explanation":"Lời Giải:<br>Minh quân: ông vua sáng suốt.<br>Chọn C","hint":""},{"originalNum":19,"qType":"1","qText":"Câu 19: [EMPIRE TEAM] “Hiền tài là nguyên khí của quốc gia”, nguyên khí thịnh thì thế nước mạnh, rồi lên cao, nguyên khí suy thì thế nước yếu, rồi xuống thấp.<br>Câu văn trên là câu:","context":"","image":null,"options":{"A":"Câu đơn.","B":"Câu ghép.","C":"Câu phức.","D":"Câu nghi vấn."},"correct":"B","explanation":"Lời Giải:<br>Chọn B","hint":""},{"originalNum":20,"qType":"1","qText":"Câu 20: [EMPIRE TEAM] Lí do chính của việc dựng bia đá là gì?","context":"","image":null,"options":{"A":"Lên danh sách các kẻ sĩ học rộng tài cao, lưu truyền cho con cháu muôn đời.","B":"Làm cho kẻ sĩ phấn chấn, hâm mộ, phấn đấu thi đua để được in lên bảng vàng, lưu danh muôn đời.","C":"Nhớ ơn những vị quan văn, võ đã có công với đất nước, nhắc nhở con cháu truyền thống hiếu học.","D":"Tạo nên sự hâm mộ, phấn chấn cho kẻ sĩ, rèn luyện bản thân để giúp vua giúp nước."},"correct":"D","explanation":"Lời Giải:<br>*Cho nên lại dựng đá đề danh đặt ở cửa Hiền Quan, khiến cho kẻ sĩ trông vào mà phấn chấn hâm mộ, rèn luyện danh tiết, gắng sức giúp vua.*<br>Chọn D","hint":""}]},{"title":"BÀI ĐỌC 5","questions":[{"originalNum":21,"qType":"1","qText":"Câu 21. [EMPIRE TEAM] Đoạn trích cho thấy thái độ gì của nhân vật khi bước vào phủ chúa Trịnh?","context":"Đọc đoạn trích sau và trả lời câu hỏi:<br>Ông san mâm cơm cho tôi ăn. Mâm vàng, chén bạc, đồ ăn toàn là của ngon vật lạ, tôi bấy giờ mới biết cái phong vị của nhà đại gia. Ăn xong, thấy một viên quan hầu cận chạy lại mời quan Chánh đường vào và bảo tôi đi theo. Đột nhiên, thấy ông ta mở một chỗ trong màn gấm rồi bước vào. Ở trong tối om, không thấy có cửa ngõ gì cả. Đi qua độ năm, sáu lần trướng gấm như vậy, đến một cái phòng rộng, ở giữa phòng có một cái sập thấp vàng.<br>Một người ngồi trên sập độ năm, sáu tuổi, mặc áo lụa đỏ. Có mấy người đứng hầu hai bên. Giữa phòng là một cây nến to cắm trên một cái giá bằng đồng. Bên sập đặt một cái ghế rồng sơn son thếp vàng, trên ghế bày nệm gấm. Một cái màn là che ngang sân. Ở trong có mấy người cung nhân đang đứng xúm xít. Đèn sáp chiếu sáng, làm nổi màu mặt phấn và màu áo đỏ. Xung quanh lấp lánh, hương hoa ngào ngạt. Xem chừng Thánh thượng thường thường vẫn ngồi trên ghế rồng này, nay người rút lui vào màn để tôi xem mạch Đông cung cho thật kĩ.<br>(Trích *Vào phủ chúa Trịnh*, Lê Hữu Trác Ngữ Văn 11, tập 1, NXB Giáo dục, Tr.6 – 7).<br><br>","image":null,"options":{"A":"Bất ngờ, sửng sốt vì sự xa hoa lộng lẫy của phủ chúa.","B":"Quan sát, nhìn nhận, đánh giá về sự xa hoa của phủ chúa.","C":"Yêu thích, tò mò, hứng thú về sự xa hoa của phủ chúa.","D":"Quan sát, khinh bỉ vì sự xa hoa, lộng lẫy của phủ chúa.<br>Chọn B"},"correct":"B","explanation":"","hint":""},{"originalNum":22,"qType":"1","qText":"Câu 22. [EMPIRE TEAM] Phương thức biểu đạt chính trong đoạn văn trên là gì?","context":"","image":null,"options":{"A":"Miêu tả.","B":"Biểu cảm.","C":"Thuyết minh.","D":"Tự sự.<br>Chọn A"},"correct":"A","explanation":"","hint":""},{"originalNum":23,"qType":"1","qText":"Câu 23. [EMPIRE TEAM] Từ “xúm xít” trong đoạn văn trên thuộc từ loại:","context":"","image":null,"options":{"A":"Danh từ.","B":"Tính từ.","C":"Động từ.","D":"Trợ từ."},"correct":"B","explanation":"Lời Giải:<br>Xúm xít: xúm lại rất đông.<br>Chọn B","hint":""},{"originalNum":24,"qType":"1","qText":"Câu 24. [EMPIRE TEAM] Biện pháp tu từ được sử dụng chủ yếu trong đoạn văn trên là:","context":"","image":null,"options":{"A":"Nhân hóa.","B":"So sánh.","C":"Liệt kê.","D":"Nói quá."},"correct":"C","explanation":"Lời Giải:<br>Liệt kê những đồ vật, quang cảnh bên trong phủ chúa làm nổi bật sự xa hoa: *Mâm vàng, chén bạc, của ngon vật lạ, nệm, sáu lần trướng gấm, sập thếp vàng, ghế rồng sơn son thếp vàng,...*<br>Chọn C","hint":""},{"originalNum":25,"qType":"1","qText":"Câu 25. [EMPIRE TEAM] Ý nào sau đây KHÔNG được nói đến trong đoạn trích:","context":"","image":null,"options":{"A":"Sự xa hoa, lộng lẫy của phủ chúa Trịnh.","B":"Hành trình Lê Hữu Trác đến thăm phủ chúa Trịnh.","C":"Thái độ bất mãn trước sự tha hóa, mục rỗng của chế độ phong kiến.","D":"Sự ghi lại những gì đã thấy khi vào thăm phủ chúa của Lê Hữu Trác.<br>Chọn C"},"correct":"C","explanation":"","hint":""}]},{"title":"BÀI ĐỌC 6","questions":[{"originalNum":26,"qType":"1","qText":"Câu 26: [EMPIRE TEAM] Chủ đề chính trong đoạn văn trên là gì?","context":"Đọc đoạn trích sau và trả lời câu hỏi:<br>(1) Thi nhân ta cơ hồ đã mất hết cái cốt cách hiên ngang ngày trước. Chữ ta với họ to rộng quá. Tâm hồn của họ chỉ vừa thu trong khuôn khổ chữ tôi. Đừng có tìm ở họ cái khí phách ngang tàng của một thi hào đời xưa như Lý Thái Bạch, trong trời đất chỉ biết có thơ. Đến chút lòng tự trọng cần để khinh cảnh cơ hàn, họ cũng không có nữa:<br>*Nỗi đời cay cực đang giơ vuốt,*<br>*Cơm áo không đùa với khách thơ.*<br>Không biết trong khi rên rỉ như thế Xuân Diệu có nghĩ đến Nguyễn Công Trứ, một người đồng quận, chẳng những đã đùa cảnh nghèo mà còn lấy cảnh nghèo làm vui.<br>Nhưng ta trách gì Xuân Diệu! Xuân Diệu, nhà thơ đại biểu đầy đủ nhất cho thời đại, chỉ nói cái khổ sở, cái thảm hại của hết thảy chúng ta.<br>(2) Đời chúng ta đã nằm trong vòng chữ tôi. Mất bề rộng ta đi tìm bề sâu. Nhưng càng đi sâu càng lạnh. Ta thoát lên tiên cùng Thế Lữ, ta phiêu lưu trong trường tình cùng Lưu Trọng Lư, ta điên cuồng với Hàn Mặc Tử, Chế Lan Viên, ta đắm say cùng Xuân Diệu. Nhưng động tiên đã khép, tình yêu không bền, điên cuồng rồi tỉnh, say đắm vẫn bơ vơ. Ta ngơ ngẩn buồn trở về hồn ta cùng Huy Cận.<br>Cả trời thực, trời mộng vẫn nao nao theo hồn ta.<br>Thực chưa bao giờ thơ Việt Nam buồn và nhất là xôn xao như thế. Cùng lòng tự tôn, ta mất luôn cả cái bình yên thời trước.<br>(Thi nhân Việt Nam $1932-1941$, Hoài Thanh - Hoài Chân, in trong Ngữ Văn $11$ Nâng cao, tập hai, NXB Giáo dục Việt Nam, Hà Nội, $2020$, tr $103-107$).<br><br>","image":null,"options":{"A":"Tình trạng “cái tôi” mới xuất hiện trong văn học Việt Nam.","B":"Những biểu hiện của “cái tôi” trong Thơ Mới.","C":"Ý nghĩa của “cái tôi” trong Thơ Mới.","D":"Sự thức tỉnh của “cái tôi” trong Thơ Mới.<br>Chọn B"},"correct":"B","explanation":"","hint":""},{"originalNum":27,"qType":"1","qText":"Câu 27: [EMPIRE TEAM] Chọn đáp án không đúng nói về nghệ thuật của đoạn văn số (2) trong ngữ liệu?","context":"","image":null,"options":{"A":"Sử dụng hàng loạt từ ngữ thể hiện cảm xúc để biểu đạt hướng tìm tòi.","B":"Sử dụng câu văn giàu nhịp điệu, có tính cảm.","C":"Sử dụng nhuần nhuyễn biện pháp điệp cấu trúc, liệt kê.","D":"Sử dụng hình ảnh ẩn dụ sâu sắc kết hợp với phép điệp cấu trúc.<br>Chọn D"},"correct":"D","explanation":"đáp án không đúng nói về nghệ thuật của đoạn văn số (2) trong ngữ liệu?<br>A. Sử dụng hàng loạt từ ngữ thể hiện cảm xúc để biểu đạt hướng tìm tòi.<br>B. Sử dụng câu văn giàu nhịp điệu, có tính cảm.<br>C. Sử dụng nhuần nhuyễn biện pháp điệp cấu trúc, liệt kê.<br>D. Sử dụng hình ảnh ẩn dụ sâu sắc kết hợp với phép điệp cấu trúc.<br>Chọn D","hint":""},{"originalNum":28,"qType":"1","qText":"Câu 28: [EMPIRE TEAM] Theo tác giả, Nguyễn Công Trứ khác thơ Xuân Diệu như thế nào?","context":"","image":null,"options":{"A":"Thơ lãng mạn bay bổng, thường thể hiện cái tôi cá nhân trước tình yêu, cuộc đời.","B":"Ca thán về cảnh nghèo và luôn mong muốn vượt qua số phận để tìm thấy hạnh phúc.","C":"Coi cảnh nghèo làm thú vui, sống một cuộc đời ngất ngưởng bình dị.","D":"Sợ thời gian trôi đi nhanh và bản thân không thể tìm thấy được hạnh phúc.<br>Chọn C"},"correct":"C","explanation":"","hint":""},{"originalNum":29,"qType":"1","qText":"Câu 29: [EMPIRE TEAM] Thao tác lập luận chủ yếu được tác giả sử dụng trong đoạn văn số (1) là:","context":"","image":null,"options":{"A":"So sánh.","B":"Giải thích.","C":"Phân tích.","D":"Bình luận.<br>Chọn A"},"correct":"A","explanation":"","hint":""},{"originalNum":30,"qType":"1","qText":"Câu 30: [EMPIRE TEAM] “Cả trời thực, trời mộng vẫn nao nao theo hồn ta.” Đây là câu:","context":"","image":null,"options":{"A":"Câu đơn.","B":"Câu ghép.","C":"Câu phức.","D":"Câu đặc biệt.<br>Chọn B"},"correct":"B","explanation":"","hint":""}]},{"title":"BÀI ĐỌC 7","questions":[{"originalNum":31,"qType":"1","qText":"Câu 31: [EMPIRE TEAM] Đoạn văn trên được viết theo phương thức biểu đạt chính nào?","context":"Đọc đoạn trích sau và trả lời câu hỏi:<br><br>“Hỡi đồng bào cả nước,<br><br>Tất cả mọi người đều sinh ra có quyền bình đẳng. Tạo hóa cho họ những quyền không ai có thể xâm phạm được; trong những quyền ấy, có quyền được sống, quyền tự do và quyền mưu cầu hạnh phúc.<br><br>Lời bất hủ ấy ở trong bản Tuyên ngôn Độc lập năm 1776 của nước Mỹ. Suy rộng ra, câu ấy có ý nghĩa là: tất cả các dân tộc trên thế giới đều sinh ra bình đẳng, dân tộc nào cũng có quyền sống, quyền sung sướng và quyền tự do.<br><br>Bản Tuyên ngôn Nhân quyền và Dân quyền của Cách mạng Pháp năm 1791 cũng nói: Người ta sinh ra tự do và bình đẳng về quyền lợi; và phải luôn luôn được tự do và bình đẳng về quyền lợi.<br><br>Đó là những lẽ phải không ai chối cãi được.”<br><br>(Trích *Tuyên ngôn độc lập* của Hồ Chí Minh, SGK Ngữ văn lớp 12, tập 1).<br><br>","image":null,"options":{"A":"Nghị luận.","B":"Tự sự.","C":"Miêu tả.","D":"Biểu cảm"},"correct":"A","explanation":"Lời Giải<br><br>Nghị luận là phương thức chủ yếu được dùng để bàn bạc phải trái, đúng sai nhằm bộc lộ rõ chủ kiến, thái độ của người nói, người viết rồi dẫn dắt, thuyết phục người khác đồng tình với ý kiến của mình.<br><br>Chọn A","hint":""},{"originalNum":32,"qType":"1","qText":"Câu 32: [EMPIRE TEAM] Xác định phong cách ngôn ngữ của văn bản:","context":"","image":null,"options":{"A":"Báo chí.","B":"Nghệ thuật.","C":"Hành chính.","D":"Chính luận"},"correct":"D","explanation":"Lời Giải<br><br>Chính luận là ngôn ngữ dùng trong các văn bản chính luận hoặc lời nói miệng trong các buổi hội nghị, hội thảo, nói chuyện thời sự,... nhằm trình bày, bình luận, đánh giá những sự kiện, những vấn đề về chính trị, xã hội, văn hóa, tư tưởng,... theo một quan điểm chính trị nhất định.<br><br>Chọn D","hint":""},{"originalNum":33,"qType":"1","qText":"Câu 33: [EMPIRE TEAM] Nêu nội dung chính của đoạn trích:","context":"","image":null,"options":{"A":"Tố cáo những tội ác của giặc.","B":"Khẳng định cuộc đấu tranh chính nghĩa của nhân dân Việt Nam.","C":"Cơ sở lý luận của bản Tuyên ngôn độc lập.","D":"Lời tuyên bố độc lập và ý chí bảo vệ chủ quyền của dân tộc.<br><br>Chọn C"},"correct":"C","explanation":"","hint":""},{"originalNum":34,"qType":"1","qText":"Câu 34: [EMPIRE TEAM] Việc dùng từ “Suy rộng ra” có ý nghĩa như thế nào?","context":"","image":null,"options":{"A":"Đề cao giá trị tư tưởng nhân đạo và văn minh nhân loại, tạo tiền đề cho những lập luận tiếp theo.","B":"Thuyết phục Đồng minh nhân dân yêu chuộng hòa bình thế giới ủng hộ cho nền độc lập của Việt Nam.","C":"Bác bỏ luận điệu xảo trá của thực dân Pháp trước dư luận thế giới.","D":"Từ quyền bình đẳng, tự do của con người, Hồ Chí Minh suy rộng ra về quyền bình đẳng, tự do của các dân tộc.<br><br>Chọn D"},"correct":"D","explanation":"","hint":""},{"originalNum":35,"qType":"1","qText":"Câu 35: [EMPIRE TEAM] Biện pháp tu từ chính được sử dụng trong đoạn trích trên là gì?","context":"","image":null,"options":{"A":"Liệt kê.","B":"Ẩn dụ.","C":"Nói giảm, nói tránh.","D":"Hoán dụ"},"correct":"A","explanation":"Lời Giải<br>Biện pháp liệt kê:<br>- *quyền được sống, quyền tự do và quyền mưu cầu hạnh phúc*<br>- *quyền sống, quyền sung sướng và quyền tự do...*<br>Chọn A","hint":""}]},{"title":"BÀI ĐỌC 8","questions":[{"originalNum":36,"qType":"1","qText":"Câu 36: [EMPIRE TEAM] Xác định phương thức biểu đạt chính trong đoạn văn trên?","context":"Đọc đoạn trích sau và trả lời câu hỏi:<br>“Tất cả trẻ em trên thế giới đều trong trắng, dễ bị tổn thương và còn phụ thuộc. Đồng thời, chúng hiểu biết, ham hoạt động và đầy ước vọng. Tuổi chúng phải được sống trong vui tươi, thanh bình, được chơi, được học và phát triển. Tương lai của chúng phải được hình thành trong sự hòa hợp và tương trợ. Chúng phải được trưởng thành khi được mở rộng tầm nhìn, thu nhận thêm những kinh nghiệm mới”<br>(Trích SGK Ngữ văn 9, tập 1)<br><br>","image":null,"options":{"A":"Miêu tả","B":"Nghị luận","C":"Tự sự","D":"Biểu cảm"},"correct":"B","explanation":"Lời Giải<br>Nghị luận: là phương thức chủ yếu được dùng để bàn bạc phải trái, đúng sai nhằm bộc lộ rõ chủ kiến, thái độ của người nói, người viết rồi dẫn dắt, thuyết phục người khác đồng tình với ý kiến của mình.<br>Chọn B","hint":""},{"originalNum":37,"qType":"1","qText":"Câu 37: [EMPIRE TEAM] Xét về mục đích, câu “*Tuổi chúng phải được sống trong vui tươi, thanh bình, được chơi, được học và phát triển. Tương lai của chúng phải được hình thành trong sự hòa hợp và tương trợ. Chúng phải được trưởng thành khi được mở rộng tầm nhìn, thu nhận thêm những kinh nghiệm mới*” thuộc kiểu câu gì?","context":"","image":null,"options":{"A":"Câu nghi vấn","B":"Câu cầu khiến","C":"Câu cảm thán","D":"Câu trần thuật"},"correct":"B","explanation":"Lời Giải<br>Câu trên thuộc kiểu câu cầu khiến, như một lời yêu cầu mỗi chúng ta cần phải quan tâm, phải đem lại những cuộc sống tốt cho trẻ em. Để giúp cho những đứa trẻ đó có tương lai với được trưởng thành trong một cuộc sống đầy đủ và được yêu thương.<br>Chọn B","hint":""},{"originalNum":38,"qType":"1","qText":"Câu 38: [EMPIRE TEAM] Xác định biện pháp tu từ được sử dụng chủ yếu trong đoạn văn?","context":"","image":null,"options":{"A":"So sánh","B":"Điệp ngữ","C":"Liệt kê","D":"Ẩn dụ"},"correct":"B","explanation":"Lời Giải<br>Điệp ngữ “chúng phải được” => Nhấn mạnh những điều đó là những điều mà bất kì đứa trẻ nào cũng phải nhận được.<br>Chọn B","hint":""},{"originalNum":39,"qType":"1","qText":"Câu 39: [EMPIRE TEAM] Từ “chúng” trong đoạn văn trên dùng để chỉ ai?","context":"","image":null,"options":{"A":"Những trẻ em mồ côi","B":"Những trẻ em đang bị áp bức.","C":"Nói quá.","D":"Những trẻ em Việt Nam.<br>Chọn D"},"correct":"D","explanation":"","hint":""},{"originalNum":40,"qType":"1","qText":"Câu 40: [EMPIRE TEAM] Nội dung chính của đoạn văn trên là gì?","context":"","image":null,"options":{"A":"Sự khẳng định quyền được sống và phát triển của trẻ em","B":"Biện pháp để trẻ em có cuộc sống tốt hơn","C":"Niềm xót thương của tác giả dành cho trẻ em","D":"Cả 3 phương án trên<br>Chọn A"},"correct":"A","explanation":"","hint":""}]},{"title":"BÀI ĐỌC 9","questions":[{"originalNum":41,"qType":"1","qText":"Câu 41. [EMPIRE TEAM] Đoạn văn trên thuộc thể loại nào?","context":"Đọc đoạn trích sau và trả lời câu hỏi:<br>“Bắc Bình Vương tiếp được tin báo, giận lắm, liền họp các tướng sĩ, định thân chinh cầm quân đi ngay. Nhưng các người đến họp đều nói:<br>- Chúa công với vua Tây Sơn có sự hiềm khích, đối với ngôi chí tôn, lòng tôn phò của mọi người chưa thật vững bền, nay nghe quân Thanh sang đánh, càng dễ sinh ra ngờ vực hai lòng. Vậy xin trước hết hãy chính vị hiệu, ban lệnh ân xá khắp trong ngoài, để yên kẻ phản trắc và giữ lấy lòng người, rồi sau sẽ cất quân ra đánh dẹp cõi Bắc cũng là chưa muộn.<br>Bắc Bình Vương lấy làm phải, bèn cho đắp đàn ở núi Bân, tế cáo trời đất cùng các thần sông, thần núi, chế ra áo cổn mũ miện, lên ngôi hoàng đế, đổi năm thứ 11 niên hiệu Thái Đức của vua Tây Sơn Nguyễn Nhạc làm năm đầu niên hiệu Quang Trung. Lễ xong, hạ lệnh xuất quân, hôm ấy nhằm vào ngày 25 tháng chạp năm Mậu Thân (1788).”<br>(Trích *Hoàng Lê nhất thống chí (Hồi thứ mười bốn)*, Ngô gia văn phái).<br><br>","image":null,"options":{"A":"Truyền thuyết.","B":"Thần thoại.","C":"Chí.","D":"Cổ tích.<br>Chọn C"},"correct":"C","explanation":"","hint":""},{"originalNum":42,"qType":"1","qText":"Câu 42. [EMPIRE TEAM] Vua Quang Trung trong đoạn trích trên được miêu tả như thế nào?","context":"","image":null,"options":{"A":"Là người có cách đánh giặc độc đáo, sáng tạo.","B":"Là người thông minh, đoán trước được sự việc.","C":"Là người chủ quan, nóng vội, thiếu kiên nhẫn.","D":"Là người quyết đoán, biết lắng nghe ý kiến của tướng sĩ.<br>Chọn D"},"correct":"D","explanation":"","hint":""},{"originalNum":43,"qType":"1","qText":"Câu 43. [EMPIRE TEAM] Tác phẩm “Hoàng Lê nhất thống chí” có giá trị về mặt nào?","context":"","image":null,"options":{"A":"Văn học.","B":"Sử học.","C":"Văn học, sử học.","D":"Toán học.<br>Chọn C"},"correct":"C","explanation":"","hint":""},{"originalNum":44,"qType":"1","qText":"Câu 44. [EMPIRE TEAM] Khi nghe được tin báo, Bắc Bình Vương có cảm xúc như thế nào?","context":"","image":null,"options":{"A":"Vui mừng tột độ, ra lệnh khen thưởng.","B":"Tức giận, định cầm quân đi chinh chiến.","C":"Buồn bã, đau khổ, ra lệnh rút quân.","D":"Hạnh phúc, sung sướng, quyết định lên ngôi.<br>Chọn B"},"correct":"B","explanation":"","hint":""},{"originalNum":45,"qType":"1","qText":"Câu 45. [EMPIRE TEAM] Phương thức biểu đạt nào được sử dụng trong đoạn văn trên?","context":"","image":null,"options":{"A":"Tự sự, miêu tả, biểu cảm.","B":"Nghị luận, biểu cảm, tự sự.","C":"Miêu tả, nghị luận, tự sự.","D":"Tự sự, nghị luận, thuyết minh.<br>Chọn C"},"correct":"C","explanation":"","hint":""}]},{"title":"BÀI ĐỌC 10","questions":[{"originalNum":46,"qType":"1","qText":"Câu 46: [EMPIRE TEAM] Cho biết đoạn trích trên nằm ở phần nào?","context":"Đọc đoạn trích sau và trả lời câu hỏi:<br>“Hắn vừa đi vừa chửi. Bao giờ cũng thế, cứ rượu xong là hắn chửi. Có hề gì? Trời có của riêng nhà nào? Rồi hắn chửi đời. Thế cũng chẳng sao: đời là tất cả nhưng chẳng là ai. Tức mình, hắn chửi ngay tất cả làng Vũ Đại. Nhưng cả làng Vũ Đại ai cũng nhủ: “chắc nó trừ mình ra!”. Không ai lên tiếng cả. Tức thật! Ồ! Thế này thì tức thật! Tức chết đi được mất!<br><br>Đã thế, hắn phải chửi cha đứa nào không chửi nhau với hắn. Nhưng cũng không ai ra điều. Mẹ kiếp! Thế có phí rượu không? Thế thì có khổ hắn không? Không biết đứa chết mẹ nào lại đẻ ra thân hắn cho hắn khổ đến nông nỗi này? A ha! Phải đấy, hắn cứ thế mà chửi, hắn cứ chửi đứa chết mẹ nào đẻ ra thân hắn, đẻ ra cái thằng Chí Phèo. Nhưng mà biết đứa chết mẹ nào đã đẻ ra Chí Phèo? Có trời mà biết! Hắn không biết, cả làng Vũ Đại cũng không ai biết...”<br><br>(Trích *Chí Phèo*, Nam Cao).<br><br>","image":null,"options":{"A":"Phần kết thúc.","B":"Phần giữa.","C":"Phần mở đầu.","D":"Phần cao trào.<br>Chọn C"},"correct":"C","explanation":"","hint":""},{"originalNum":47,"qType":"1","qText":"Câu 47: [EMPIRE TEAM] Kiểu câu nào được sử dụng nhiều nhất trong đoạn trích trên?","context":"","image":null,"options":{"A":"Câu trần thuật.","B":"Câu nghi vấn.","C":"Câu cảm thán.","D":"Cả B và C đều đúng.<br>Chọn D"},"correct":"D","explanation":"","hint":""},{"originalNum":48,"qType":"1","qText":"Câu 48: [EMPIRE TEAM] Nội dung chính của đoạn trích trên là gì?","context":"","image":null,"options":{"A":"Sự bế tắc trên con đường trở về làm người lương thiện của Chí Phèo.","B":"Sự thức tỉnh, ý thức về bi kịch cuộc đời của Chí Phèo.","C":"Chí Phèo mất hết nhân tính, lựa chọn kết cục của cuộc đời.","D":"Chí Phèo xuất hiện cùng tiếng chửi rủa không ngừng.<br>Chọn D"},"correct":"D","explanation":"","hint":""},{"originalNum":49,"qType":"1","qText":"Câu 49: [EMPIRE TEAM] Đâu không phải là một trong những bi kịch của cuộc đời Chí phèo?","context":"","image":null,"options":{"A":"Bi kịch số phận.","B":"Bi kịch tai nạn.","C":"Bi kịch của sự tha hoá.","D":"Bi kịch bị cự tuyệt quyền làm người.<br>Chọn B"},"correct":"B","explanation":"","hint":""},{"originalNum":50,"qType":"1","qText":"Câu 50: [EMPIRE TEAM] Ý nghĩa đằng sau hình ảnh “con quỷ” Chí Phèo vừa đi vừa chửi trong đoạn trích trên là gì?","context":"","image":null,"options":{"A":"Chí Phèo thức tỉnh, khao khát cuộc sống lương thiện, hạnh phúc bình dị như bao người khác.","B":"Đó là tâm hồn đang ra sức quẫy đạp, cố gây chú ý để người ta nhìn nhận hắn như một con người.","C":"Hình ảnh những gã say rượu thường không tự chủ được bản thân, rượu vào là lời ra.","D":"Chí Phèo đã chửi tất tần tật, là một dự báo trừng phạt bọn cường hào ác bá ở làng Vũ Đại.<br>Chọn B"},"correct":"B","explanation":"","hint":""}]}];
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyKTElQukk21DQRGAXuUcxyEePPnVeZlY0qmwvK-NdnGS47vIBcELK2eM5_9rp-V5eo-A/exec";
+        
+        // Nhúng dữ liệu đã mã hóa từ Generator vào file
+        const ENCRYPTED_USERS = "JTVCJTdCJTIyaWQlMjIlM0ElMjJodW5nJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIySCVDMyVCOW5nJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJuaHUlMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJIdSVFMSVCQiVCM25oJTIwTmglQzYlQjAlMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMnF1eW5oJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyUXUlRTElQkIlQjNuaCUyMEwlQzMlQUElMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmxpbmgxJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyTGluaCUyME5ndXklRTElQkIlODVuJTIwRHUlMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMm5nb2MxJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyTmclRTElQkIlOERjJTIwTmd1eSVFMSVCQiU4NW4lMjBEdSUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIydnklMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJNYWklMjBWeSUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIybmd1eWV0YW5oJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyTmd1eSVFMSVCQiU4N3QlMjBBbmglMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmtoYW5nJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyQiVFMSVCQSVBM28lMjBLaGFuZyUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIyaG9haWFuaCUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMkhvJUMzJUEwaSUyMEFuaCUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIyZ2lhbmclMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJIJUM2JUIwJUM2JUExbmclMjBHaWFuZyUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIybmdvYzIlMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJOZyVFMSVCQiU4RGMlMjBFYWthciUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIydGhhb2FuaCUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMlRoJUUxJUJBJUEzbyUyMEFuaCUyMEVha2FyJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJsdXUlMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJMJUM2JUIwdSUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIybmdvY2hhJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyTmclRTElQkIlOERjJTIwSCVDMyVBMCUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIybmdhbjElMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJIbyVDMyVBMG5nJTIwTmclQzMlQTJuJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJuZ2FuMiUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMkglQzMlQTAlMjBOZyVDMyVBMm4lMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmxpbmgyJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyTGluaCUyMEdpYSUyME5naCVDNCVBOWElMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmxpbmgzJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyTGluaCUyMEhDTSUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIybWFuJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyVHJpJUUxJUJCJTg3dSUyME0lRTElQkElQUJuJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJkdW5nJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyUGglQzMlQkElMjBEJUM1JUE5bmclMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmR1eWVuJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyTSVFMSVCQiVCOSUyMER1eSVDMyVBQW4lMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmxhbSUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMkglRTElQkIlOTNuZyUyMEwlQzMlQTJtJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJ0YW0lMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJUciVFMSVCQSVBN24lMjBUJUMzJUEybSUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIybmh1bmclMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJQaCVFMSVCQSVBMW0lMjBOaHVuZyUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIyYW4lMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJBbiUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIydHJpJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyTmd1eSVFMSVCQiU4NW4lMjBWaSVFMSVCQSVCRnQlMjBUciVDMyVBRCUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIydmklMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJUcmklRTElQkIlODd1JTIwVmklMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMnRpbmglMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJUJUUxJUJCJUFCJTIwSCVFMSVCQiVBRnUlMjBUJUUxJUJCJTg5bmglMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmFuMSUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMlRyaSVFMSVCQiU4N3UlMjAlQzMlODJuJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJ0aGFuZyUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMlRyJUUxJUJBJUE3biUyMCVDNCU5MGluaCUyMEMlQzMlQjRuZyUyMFRoJUUxJUJBJUFGbmclMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmtpZXQlMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjIlQzQlOTBvJUMzJUEwbiUyMFQlRTElQkElQTVuJTIwS2klRTElQkIlODd0JTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJhdSUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMkglRTElQkElQTNpJTIwJUMzJTgydSUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIycXVhbiUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMk1pbmglMjBRdSVDMyVBMm4lMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmJhbyUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMiVDNCU5MCVFMSVCQiVBOWMlMjBCJUUxJUJBJUEzbyUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIydHJhbmclMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJUaHUlMjBUcmFuZyUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIydHJpMSUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMlRoYW5oJTIwVHIlQzMlQUQlMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMnRoYW8lMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJQaCVDNiVCMCVDNiVBMW5nJTIwVGglRTElQkElQTNvJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJkdW9uZyUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMk5oJUUxJUJBJUFEdCUyMEQlQzYlQjAlQzYlQTFuZyUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIyaHVuZzElMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMzQ1NiUyMiUyQyUyMm5hbWUlMjIlM0ElMjJIJUMzJUI5bmclMjBQaG9uZyUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIybmh1MSUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMkdpYSUyME5odSUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIycGh1b25nYW5oJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxJTIyJTJDJTIybmFtZSUyMiUzQSUyMlBoJUM2JUIwJUM2JUExbmclMjBBbmglMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMnV5ZW4lMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjElMjIlMkMlMjJuYW1lJTIyJTNBJTIyVXklQzMlQUFuJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJob2FuZyUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMkhvJUMzJUEwbmclMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmtoYW5nMSUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzNDU2JTIyJTJDJTIybmFtZSUyMiUzQSUyMktoYW5nJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJraG9pJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjM0NTYlMjIlMkMlMjJuYW1lJTIyJTNBJTIyS2glQzMlQjRpJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJ0cmlldSUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzJTIyJTJDJTIybmFtZSUyMiUzQSUyMkwlQzMlQUElMjBRdSVFMSVCQiU5MWMlMjBUcmklRTElQkIlODd1JTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJodXklMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMyUyMiUyQyUyMm5hbWUlMjIlM0ElMjJUciVFMSVCQSVBN24lMjBIdXklMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMm1pbmglMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMyUyMiUyQyUyMm5hbWUlMjIlM0ElMjJOaCVFMSVCQSVBRHQlMjBNaW5oJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJjaGF1JTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjMlMjIlMkMlMjJuYW1lJTIyJTNBJTIyQ2glQzMlQTJ1JTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJuZ2ElMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMyUyMiUyQyUyMm5hbWUlMjIlM0ElMjJOZ2ElMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmRhaSUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzJTIyJTJDJTIybmFtZSUyMiUzQSUyMlRyJUUxJUJCJThEbmclMjAlQzQlOTAlRTElQkElQTFpJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJodXklMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMyUyMiUyQyUyMm5hbWUlMjIlM0ElMjJHaWElMjBIdXklMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmFuaCUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzJTIyJTJDJTIybmFtZSUyMiUzQSUyMkhvJUMzJUEwbmclMjBBbmglMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmR1YyUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzJTIyJTJDJTIybmFtZSUyMiUzQSUyMk1pbmglMjAlQzQlOTAlRTElQkIlQTljJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJxdXluaCUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzJTIyJTJDJTIybmFtZSUyMiUzQSUyMk5ndXklRTElQkIlODVuJTIwTmglQzYlQjAlMjBRdSVFMSVCQiVCM25oJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJuZ29jJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjMlMjIlMkMlMjJuYW1lJTIyJTNBJTIySCVDMyVBMCUyMEglRTElQkElQTNpJTIwTmclRTElQkIlOERjJTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJueW55JTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjMlMjIlMkMlMjJuYW1lJTIyJTNBJTIyQyVDMyVBMXAlMjBOZ3V5JUUxJUJCJTg1biUyME55JTIwTnklMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmFuaCUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzJTIyJTJDJTIybmFtZSUyMiUzQSUyMkhvJUMzJUEwbmclMjBUaCVFMSVCQiU4QiUyMFBoJUM2JUIwJUM2JUExbmclMjBBbmglMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMm5odTIlMjIlMkMlMjJwYXNzd29yZCUyMiUzQSUyMjEyMyUyMiUyQyUyMm5hbWUlMjIlM0ElMjJQaCVFMSVCQSVBMW0lMjBMb25nJTIwR2lhJTIwTmglQzYlQjAlMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMnBoaSUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzJTIyJTJDJTIybmFtZSUyMiUzQSUyMlBoJUUxJUJBJUExbSUyME5nJUUxJUJCJThEYyUyMFBoaSUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIydGFpJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjMlMjIlMkMlMjJuYW1lJTIyJTNBJTIyUGglRTElQkElQTFtJTIwViVDNCU4M24lMjBUJUMzJUEwaSUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIydGhhbyUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzJTIyJTJDJTIybmFtZSUyMiUzQSUyMlBoJUUxJUJBJUExbSUyMFRoJUUxJUJBJUEzbyUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIyaGFuJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjMlMjIlMkMlMjJuYW1lJTIyJTNBJTIyTmclRTElQkIlOERjJTIwSCVDMyVBMm4lMjIlN0QlMkMlN0IlMjJpZCUyMiUzQSUyMmhhdSUyMiUyQyUyMnBhc3N3b3JkJTIyJTNBJTIyMTIzJTIyJTJDJTIybmFtZSUyMiUzQSUyMkglRTElQkElQUR1JTIyJTdEJTJDJTdCJTIyaWQlMjIlM0ElMjJxdWFuJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjMlMjIlMkMlMjJuYW1lJTIyJTNBJTIyTWluaCUyMFF1JUMzJUEybiUyMiU3RCUyQyU3QiUyMmlkJTIyJTNBJTIyaG9hJTIyJTJDJTIycGFzc3dvcmQlMjIlM0ElMjIxMjMlMjIlMkMlMjJuYW1lJTIyJTNBJTIyVHIlRTElQkElQTduJTIwSG9hJTIyJTdEJTVE"; 
+        
+        let currentStudent = { id: "", name: "" };
+        let sectionStartTimes = {};
+
+        async function handleLogin() {
+            const id = document.getElementById('hs-id').value.trim();
+            const pass = document.getElementById('hs-pass').value.trim();
+            const msg = document.getElementById('login-msg');
+            
+            if(!id || !pass) return msg.innerText = "Nhập đủ ID và Mật khẩu!";
+            
+            try {
+                if(!ENCRYPTED_USERS) {
+                    msg.innerText = "Lỗi: Bài thi chưa được nhúng dữ liệu học sinh (Chưa tải từ Generator)!";
+                    return;
+                }
+                
+                // Giải mã danh sách học sinh
+                const users = JSON.parse(decodeURIComponent(atob(ENCRYPTED_USERS)));
+                
+                // Tìm kiếm thông tin học sinh ở môi trường cục bộ (so sánh id và pass)
+                const user = users.find(u => u.id == id && u.password == pass); // Đổi 'password' thành key phù hợp với Sheet của bạn
+                
+                if(user) {
+                    currentStudent.id = id; 
+                    currentStudent.name = user.name;
+                    document.getElementById('login-modal').style.display = 'none';
+                    
+                    // --- THÊM PHẦN HỎI VÀ HIỂN THỊ TÊN Ở ĐÂY ---
+                    // Hỏi xác nhận họ tên (Gợi ý sẵn tên lấy từ GG Sheet)
+                    const confirmedName = prompt("Vui lòng xác nhận Họ Tên của bạn để hiển thị trên bài làm:", currentStudent.name) || currentStudent.name;
+                    currentStudent.name = confirmedName; // Cập nhật lại nếu hs sửa
+                    
+                    // Hiển thị tên với viền RGB và Nút tải
+                    document.getElementById('student-name-display').innerHTML = "Học sinh: " + currentStudent.name + " - ID: " + currentStudent.id;
+                    document.getElementById('student-info-container').style.display = 'block';
+                    document.getElementById('btn-download-html').style.display = 'block';
+                    // -------------------------------------------
+
+                    quizData.forEach((sec, sIdx) => sectionStartTimes[sIdx] = Date.now());
+                    startHeartbeat(id);
+                } else { 
+                    msg.innerText = "Sai Mã học sinh hoặc Mật khẩu!"; 
+                }
+            } catch(e) { 
+                msg.innerText = "Lỗi hệ thống khi đăng nhập!"; 
+            }
+        }
+		
+		// ==========================================
+        // HỆ THỐNG TRACKING & CHỐNG GIAN LẬN
+        // ==========================================
+        function startHeartbeat(studentId) {
+            setInterval(function() {
+                const formData = new URLSearchParams();
+                formData.append('action', 'ping');
+                formData.append('id', studentId);
+                formData.append('status', getRealStatus()); 
+                fetch(GAS_URL, { method: "POST", body: formData })
+                .catch(err => console.log("Lỗi ping:", err));
+            }, 60000); 
+        }
+
+        window.addEventListener('beforeunload', function () {
+            if (typeof currentStudent !== 'undefined' && currentStudent.id) {
+                const formData = new FormData();
+                formData.append('action', 'ping');
+                formData.append('id', currentStudent.id);
+                formData.append('status', 'Mất kết nối (Thoát trang)');
+                navigator.sendBeacon(GAS_URL, formData);
+            }
+        });
+
+        function getRealStatus() {
+            // Tinh chỉnh riêng cho trang Toán 12: Kiểm tra trạng thái các nút nộp bài
+            const submitBtns = document.querySelectorAll('.btn-submit-section');
+            if (submitBtns.length === 0) return "Đang làm bài";
+            
+            let allSubmitted = true;
+            let submittedCount = 0;
+            
+            submitBtns.forEach(btn => {
+                if (btn.innerText !== "ĐÃ LƯU ĐIỂM") {
+                    allSubmitted = false;
+                } else {
+                    submittedCount++;
+                }
+            });
+
+            if (allSubmitted) return "Đã nộp xong tất cả (Đang xem giải thích)";
+            if (submittedCount > 0) return `Đã nộp ${submittedCount}/${submitBtns.length} chuyên đề`;
+            
+            return "Đang làm bài";
+        }
+
+        let tabSwitchTimeout;
+        let hasSentTabSwitchSignal = false; 
+
+        document.addEventListener("visibilitychange", function() {
+            if (typeof currentStudent !== 'undefined' && currentStudent.id) {
+                if (document.hidden) {
+                    tabSwitchTimeout = setTimeout(function() {
+                        hasSentTabSwitchSignal = true; 
+                        const formData = new FormData();
+                        formData.append('action', 'ping');
+                        formData.append('id', currentStudent.id);
+                        formData.append('status', '⚠️ ĐANG LƯỚT TAB KHÁC (Quá 1 phút)!');
+                        navigator.sendBeacon(GAS_URL, formData);
+                    }, 60000); 
+                } else {
+                    clearTimeout(tabSwitchTimeout);
+                    if (hasSentTabSwitchSignal) {
+                        let currentStatus = getRealStatus();
+                        const formData = new FormData();
+                        formData.append('action', 'ping');
+                        formData.append('id', currentStudent.id);
+                        formData.append('status', currentStatus);
+                        navigator.sendBeacon(GAS_URL, formData);
+                        hasSentTabSwitchSignal = false; 
+                    }
+                }
+            }
+        });
+
+        async function sendReportToSheet(score, total, timeSpent, testName, submitBtn) {
+            submitBtn.innerText = "ĐANG GỬI DỮ LIỆU..."; submitBtn.disabled = true;
+            const formData = new URLSearchParams();
+            formData.append('action', 'submitReport'); formData.append('id', currentStudent.id);
+            formData.append('name', currentStudent.name); formData.append('testName', testName);
+            formData.append('score', score + "/" + total); formData.append('time', timeSpent + " giây");
+            formData.append('details', "Đã nộp bài"); formData.append('note', 'Toán');
+
+            try {
+                await fetch(GAS_URL, { method: 'POST', body: formData });
+                alert(`Lưu điểm phần "${testName}" thành công! (${score}/${total})`);
+                submitBtn.innerText = "ĐÃ LƯU ĐIỂM"; submitBtn.style.background = "#27ae60";
+            } catch(e) {
+                alert("Lỗi khi gửi kết quả! Hãy chụp màn hình lại.");
+                submitBtn.innerText = "LỖI - THỬ LẠI"; submitBtn.disabled = false;
+            }
+        }
+
+        window.submitSection = function(sIdx, btnId) {
+            const btn = document.getElementById(btnId);
+            const sec = quizData[sIdx];
+            let score = 0, totalItems = 0;
+            
+            sec.questions.forEach((q, qIdx) => {
+                const id = sIdx + '_' + qIdx;
+                if (q.qType === "1") {
+                    totalItems++;
+                    const selected = document.querySelector(`input[name="q${id}"]:checked`);
+                    if(selected && selected.value === q.correct) score++;
+                } else if (q.qType === "2") {
+                    totalItems += 4;
+                    ['A','B','C','D'].forEach(opt => {
+                        const selected = document.querySelector(`input[name="q${id}_${opt}"]:checked`);
+                        if(selected && selected.value === q.correct[opt]) score++;
+                    });
+                } else if (q.qType === "3") {
+                    totalItems++;
+                    const input = document.getElementById(`q${id}_sa`);
+                    if(input) {
+                        const userAns = input.value.trim().toLowerCase();
+                        const correctVals = q.correct.split(';').map(v => v.trim().toLowerCase());
+                        if (correctVals.includes(userAns)) score++;
+                    }
+                }
+            });
+            
+            let timeSpent = sectionStartTimes[sIdx] ? Math.floor((Date.now() - sectionStartTimes[sIdx]) / 1000) : 0;
+            sendReportToSheet(score, totalItems, timeSpent, sec.title, btn);
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('quizContainer');
+            let html = "";
+
+            quizData.forEach((sec, sIdx) => {
+                html += `<h2 class="section-header">${sec.title}</h2>`;
+                sec.questions.forEach((q, qIdx) => {
+                    const id = sIdx + '_' + qIdx;
+                    
+                    // Chỉ giữ lại icon bóng đèn, đổi hàm onclick thành showHintModal và truyền sIdx, qIdx
+                    let hintIcon = q.hint ? `<span class="hint-icon" onclick="showHintModal(${sIdx}, ${qIdx})" title="Click để xem gợi ý">💡</span>` : '';
+
+                    // Khung hiển thị Đoạn trích / Ngữ liệu cho Học sinh
+                    if (q.context) {
+                        html += `<div class="passage-box" style="background:#e8f4f8; padding:20px; border-left:5px solid #2980b9; margin-bottom:20px; border-radius:6px; font-size:16.5px; line-height:1.8; box-shadow:0 2px 4px rgba(0,0,0,0.05); font-family:serif;">
+                            ${q.context}
+                        </div>`;
+                    }
+					
+					html += `<div class="question-box" id="qBox_${id}">
+                                <div class="q-text">
+                                    ${q.qText}
+                                    ${hintIcon}
+                                </div>`;
+                                
+                    if (q.image) html += `<img src="${q.image}" style="max-width:100%; border-radius:4px; margin-bottom:15px;">`;
+                    
+                    // Nâng cấp HTML Type 1 & 2 với class mới
+                    if (q.qType === "1") {
+                        html += `<div class="options-grid">
+                            <label class="option-label" id="lbl_${id}_A"><input type="radio" name="q${id}" value="A"><span class="opt-letter">A</span> ${q.options.A}</label>
+                            <label class="option-label" id="lbl_${id}_B"><input type="radio" name="q${id}" value="B"><span class="opt-letter">B</span> ${q.options.B}</label>
+                            <label class="option-label" id="lbl_${id}_C"><input type="radio" name="q${id}" value="C"><span class="opt-letter">C</span> ${q.options.C}</label>
+                            <label class="option-label" id="lbl_${id}_D"><input type="radio" name="q${id}" value="D"><span class="opt-letter">D</span> ${q.options.D}</label>
+                        </div>`;
+                    } else if (q.qType === "2") {
+                        html += `<table class="tf-table">
+                            <tr><th>Mệnh đề</th><th width="80px">Đúng</th><th width="80px">Sai</th></tr>
+                            ${['A','B','C','D'].map(opt => `
+                            <tr>
+                                <td><span class="opt-letter-tf">${opt}</span> ${q.options[opt]}</td>
+                                <td class="tf-cell-center" id="td_${id}_${opt}_D">
+                                    <label class="tf-radio-label"><input type="radio" name="q${id}_${opt}" value="Đ"><span class="tf-btn">Đ</span></label>
+                                </td>
+                                <td class="tf-cell-center" id="td_${id}_${opt}_S">
+                                    <label class="tf-radio-label"><input type="radio" name="q${id}_${opt}" value="S"><span class="tf-btn">S</span></label>
+                                </td>
+                            </tr>`).join('')}
+                        </table>`;
+                    } else if (q.qType === "3") {
+						html += `<div>
+							<input type="text" id="q${id}_sa" class="sa-input" placeholder="Nhập hoặc tick chọn đáp án..." style="font-size:20px; font-weight:bold; margin-bottom:15px; text-align:center;">
+							<div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; max-width: 400px; margin: 0 auto;">
+								${['1','2','3','4','5','6','7','8','9','0','-',',','.'].map(char => 
+									`<button type="button" style="width:45px; height:45px; border-radius:50%; background:#fff; border:2px solid #bdc3c7; font-size:18px; font-weight:bold; color:#2c3e50; cursor:pointer;" onmouseover="this.style.background='#ecf0f1'" onmouseout="this.style.background='#fff'" onclick="document.getElementById('q${id}_sa').value += '${char}'">${char}</button>`
+								).join('')}
+								<button type="button" style="height:45px; padding:0 20px; border-radius:25px; background:#e74c3c; border:none; font-size:16px; font-weight:bold; color:white; cursor:pointer;" onclick="let input = document.getElementById('q${id}_sa'); input.value = input.value.slice(0, -1);">Xóa</button>
+							</div>
+						</div>`;
+					}
+
+                    html += `<div class="actions">
+                                <button class="btn-check" onclick="checkAnswer(${sIdx}, ${qIdx})">Kiểm tra ngay</button>
+                                <button class="btn-key" id="btnKey_${id}" onclick="showKey(${sIdx}, ${qIdx})">Xem Lời Giải</button>
+                            </div>
+                            <div class="feedback" id="feedback_${id}"></div>
+                            <div class="explanation-box" id="exp_${id}">${q.explanation}</div>
+                        </div>`;
+                });
+                const btnId = 'submitBtn_' + sIdx;
+                html += `<button id="${btnId}" class="btn-submit-section" onclick="submitSection(${sIdx}, '${btnId}')">NỘP BÀI & LƯU ĐIỂM CHUYÊN ĐỀ NÀY</button><hr style="margin-top:40px;">`;
+            });
+            container.innerHTML = html;
+        }
+		
+		window.showHintModal = function(sIdx, qIdx) {
+            const q = quizData[sIdx].questions[qIdx];
+            if (!q || !q.hint) return;
+            
+            const modalBody = document.getElementById('hint-modal-body');
+            // Chuyển đổi dấu xuống dòng
+            modalBody.innerHTML = q.hint.replace(/\n/g, '<br>');
+            
+            // Hiển thị pop-up
+            document.getElementById('hint-modal-overlay').style.display = 'flex';
+            
+            // Yêu cầu MathJax render lại công thức Toán trong pop-up
+            if (window.MathJax) {
+                MathJax.typesetPromise([modalBody]);
+            }
+        };
+
+        window.closeHintModal = function() {
+            document.getElementById('hint-modal-overlay').style.display = 'none';
+        };
+
+        window.checkAnswer = function(sIdx, qIdx) {
+            const id = sIdx + '_' + qIdx;
+            const q = quizData[sIdx].questions[qIdx];
+            const feedback = document.getElementById(`feedback_${id}`);
+            document.getElementById(`btnKey_${id}`).style.display = 'inline-block';
+            let isAllCorrect = true;
+
+            if (q.qType === "1") {
+                const selected = document.querySelector(`input[name="q${id}"]:checked`);
+                ['A', 'B', 'C', 'D'].forEach(opt => document.getElementById(`lbl_${id}_${opt}`).className = 'option-label');
+                if (!selected) { isAllCorrect = false; } 
+                else if (selected.value === q.correct) { document.getElementById(`lbl_${id}_${selected.value}`).classList.add('correct'); } 
+                else { document.getElementById(`lbl_${id}_${selected.value}`).classList.add('wrong'); isAllCorrect = false; }
+            } 
+            else if (q.qType === "2") {
+                ['A', 'B', 'C', 'D'].forEach(opt => {
+                    const selected = document.querySelector(`input[name="q${id}_${opt}"]:checked`);
+                    const tdD = document.getElementById(`td_${id}_${opt}_D`);
+                    const tdS = document.getElementById(`td_${id}_${opt}_S`);
+                    tdD.className = 'tf-cell-center'; tdS.className = 'tf-cell-center';
+                    
+                    if (!selected) { isAllCorrect = false; }
+                    else if (selected.value === q.correct[opt]) {
+                        if(selected.value === 'Đ') tdD.classList.add('tf-correct'); else tdS.classList.add('tf-correct');
+                    } else {
+                        if(selected.value === 'Đ') tdD.classList.add('tf-wrong'); else tdS.classList.add('tf-wrong');
+                        isAllCorrect = false;
+                    }
+                });
+            }
+            else if (q.qType === "3") {
+                const input = document.getElementById(`q${id}_sa`);
+                const userAns = input.value.trim().toLowerCase();
+                const correctVals = q.correct.split(';').map(v => v.trim().toLowerCase());
+                if (!userAns) isAllCorrect = false;
+                else if (correctVals.includes(userAns)) { input.style.borderColor = '#2ecc71'; input.style.backgroundColor = '#d5f5e3'; }
+                else { input.style.borderColor = '#e74c3c'; input.style.backgroundColor = '#fadbd8'; isAllCorrect = false; }
+            }
+
+            feedback.innerHTML = isAllCorrect ? '<span style="color:#2ecc71">Xuất sắc! Bạn chọn đúng hết! 🎉</span>' : '<span style="color:#e74c3c">Có chỗ sai sót, hãy kiểm tra lại.</span>';
+        };
+
+        window.showKey = function(sIdx, qIdx) {
+            const id = sIdx + '_' + qIdx;
+            const q = quizData[sIdx].questions[qIdx];
+            const exp = document.getElementById(`exp_${id}`);
+            
+            let correctText = "";
+            if(q.qType === "1") correctText = `<strong>Đáp án đúng: ${q.correct}</strong><br><br>`;
+            else if(q.qType === "2") correctText = `<strong>Key: A-${q.correct.A} | B-${q.correct.B} | C-${q.correct.C} | D-${q.correct.D}</strong><br><br>`;
+            else if(q.qType === "3") correctText = `<strong>Đáp án được chấp nhận: ${q.correct}</strong><br><br>`;
+
+            exp.innerHTML = correctText + q.explanation;
+            exp.style.display = 'block';
+            if (window.MathJax) MathJax.typesetPromise([exp]);
+        };
+		
+		// ==========================================
+        // HÀM LƯU BÀI LÀM ĐÃ CHẤM THÀNH FILE HTML
+        // ==========================================
+        window.downloadGradedHTML = function() {
+            const btnDownload = document.getElementById('btn-download-html');
+            btnDownload.innerText = "ĐANG TẠO FILE...";
+            
+            // 1. Đồng bộ trạng thái giao diện vào HTML Attributes để giữ nguyên thao tác
+            document.querySelectorAll('input[type="radio"]').forEach(el => {
+                if (el.checked) el.setAttribute('checked', 'checked');
+                else el.removeAttribute('checked');
+            });
+            document.querySelectorAll('input[type="text"]').forEach(el => {
+                el.setAttribute('value', el.value);
+            });
+
+            // 2. Clone toàn bộ mã nguồn hiện tại của trang
+            const clone = document.documentElement.cloneNode(true);
+
+            // 3. Xóa các thành phần không cần thiết ở bản offline
+            const elementsToRemove = ['#login-modal', '#btn-download-html', '.btn-submit-section', '.btn-check'];
+            elementsToRemove.forEach(selector => {
+                clone.querySelectorAll(selector).forEach(el => el.remove());
+            });
+
+            // 4. Khóa toàn bộ input và button (NHƯNG giữ lại nút Xem Lời Giải)
+            clone.querySelectorAll('input, button:not(.btn-key)').forEach(el => el.setAttribute('disabled', 'true'));
+
+            // 5. XỬ LÝ LỖI "RENDER LẠI TỪ ĐẦU" (Dùng replace chuỗi để an toàn tuyệt đối, tránh lỗi regex)
+            clone.querySelectorAll('script').forEach(script => {
+                let code = script.innerHTML;
+                code = code.replace('function renderQuiz() {', 'function renderQuiz() { return; /* Đã chặn render offline */ ');
+                code = code.replace('startHeartbeat(id);', '/* Bản offline: Đã chặn heartbeat */');
+                script.innerHTML = code;
+            });
+
+            // 6. Tạo file và ép trình duyệt tải xuống (Đã xóa ký tự xuống dòng)
+            const htmlContent = "<!DOCTYPE html>" + clone.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            // Tên file xuất ra chứa toàn bộ bài làm
+            const safeName = currentStudent.name ? currentStudent.name.replace(/\s+/g, '_') : 'Khach';
+            const safeId = currentStudent.id ? currentStudent.id : 'Unknown';
+            a.download = `BaiLam_${safeName}_${safeId}.html`;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            btnDownload.innerText = "📥 TẢI BÀI ĐÃ CHẤM";
+        };
+
+        renderQuiz();
+    </script>
+</body>
+</html>
